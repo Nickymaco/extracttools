@@ -1,10 +1,11 @@
 #!/bin/bash
 set -e
 
+export list_content="/tmp/content.txt"
+export config_dir="$HOME/.extract_config"
+export config_file="$config_dir/extract.config"
+
 exclude_file="$HOME/scripts/shell/extractexclude.txt"
-store_config="$HOME/scripts/shell/extractdir.txt"
-album_config="$HOME/scripts/shell/extractalbumdir.txt"
-list_content="/tmp/content.txt"
 
 video_exts=("*.avi" "*.mp4" "*.mov" "*.wmv" "*.rmvb" "*.mkv" "*.flv" "*.mpg" "*.MP4" "*.AVI" "*.MOV" "*.WMV" "*.RMVB" "*.MKV" "*.FLV" "*.MPG")
 image_exts=("*.jpg" "*.jpeg" "*.png" "*.bmp" "*.JPG" "*.JPEG" "*.PNG" "*.BMP")
@@ -12,6 +13,23 @@ image_exts=("*.jpg" "*.jpeg" "*.png" "*.bmp" "*.JPG" "*.JPEG" "*.PNG" "*.BMP")
 video_path_pattern="\\.(mp4|avi|mov|wmv|rmvb|mpg|mkv|flv)$"
 image_path_pattern="\\.(jpg|png|jpeg|bmp)$"
 escape_chars=("\\(" "\\)" "\\[" "\\]" "&" "\\}" "{" "\\$" "^" "~" "!" "\\\`" "\\\"" "'")
+
+init(){
+    if [[ ! -d "$config_dir" ]]; then
+        mkdir -p "$HOME/.extract_config"
+    fi
+
+    if [[ -f "$config_file" ]]; then
+        while read -r line; do
+            case $line in
+                exclude=*) export exclude_file="${line//exclude=/}" ;;
+                video_album_store=*) export video_album_dir="${line//video_album_store=/}" ;;
+                video_store=*) export video_save_dir="${line//video_store=/}" ;;
+                image_store=*) export image_save_dir="${line//image_store=/}" ;;
+            esac
+        done < "$config_file"
+    fi
+}
 
 msg(){
     local msg_type
@@ -88,9 +106,16 @@ format_save_dir() {
 check_store(){
     local cur_dir   
     local file_count
-    local code
+    local save_dir
 
-    cur_dir=$(cat "$store_config")
+    save_dir="$1"
+
+    if [[ -f "$save_dir" ]]; then
+        cur_dir < "$save_dir"
+    else
+        read -er -p "need a video save path" cur_dir
+    fi
+
     file_count=0
 
     for i in "$cur_dir"/*
@@ -107,13 +132,13 @@ check_store(){
             mkdir -p "$new_path"
         fi
 
-        code=$?
-
-        if [[ $code -eq 0 ]]; then
-           echo "$new_path" | tee "$store_config"
-        else
-            echo "$cur_dir"
+        if [[ $($?) -ne 0 ]]; then
+            echo "bad : $cur_dir"
             return 1
+        fi
+
+        if [[ -f "$save_dir" ]]; then
+            echo "$new_path" | tee "$save_dir"
         fi
     else
         echo "$cur_dir"
@@ -131,7 +156,7 @@ check_custom_dir(){
         fi
     else
         local store_path
-        store_path=$(check_store)
+        store_path=$(check_store "$video_save_dir")
         echo "$store_path"
     fi
 }
@@ -150,41 +175,6 @@ check_dir(){
     fi
 
     return $?
-}
-
-# return the alumb store path
-check_album(){
-    local cur_dir 
-    local file_count
-    local code
-
-    cur_dir=$(cat "$album_config")
-    file_count=0
-
-    for i in "$cur_dir"/*
-    do
-        if [[ -d $i ]]; then
-            file_count=$(( file_count + 1 ))
-        fi
-    done
-
-    if [[ $file_count -gt 55 ]]; then
-        read -er -p "he dir:${cur_dir} is full. give a new path: " new_path
-
-        if [[ ! -d "$new_path" ]]; then
-            mkdir -p "$new_path"
-        fi
-
-        code=$?
-
-        if [[ $code -eq 0 ]]; then
-           echo "$new_path" | tee "$album_config"
-        else
-            echo ""
-        fi
-    else
-        echo "$cur_dir"
-    fi
 }
 
 # $1 file_name
@@ -453,7 +443,7 @@ main() {
         if [[ "$assing_dir" != "" ]]; then
             exp_dir=$(format_save_dir "$assing_dir")
         else
-            check_album_dir=$(check_album)
+            check_album_dir=$(check_store "$video_album_dir")
             exp_dir="$check_album_dir/$dir_name"
 
             read -er -p "There are more then one media file, would you like extract to here :$exp_dir " r_answered
@@ -526,6 +516,8 @@ if [[ "$epassword" == '' && "$target" == '' ]]; then
 fi
 
 shift $(( OPTIND - 1 ))
+
+init # initialize environment
 
 while [[ -n "$1" ]]; do
     main "$1"
