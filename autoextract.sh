@@ -518,7 +518,7 @@ while getopts :D: opt; do
     esac
 done
 
-if [[ "$target" == '' && "$epassword" == '' ]]; then
+if [[ "$epassword" == '' && "$target" == '' ]]; then
     msg --error "Please set the target or give a password ! \\n"
     exit 1
 fi
