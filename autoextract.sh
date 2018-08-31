@@ -281,27 +281,29 @@ get_pwd() {
     arr_length=${#arr_password[@]}
 
     if [[ $arr_length -eq 0 ]]; then
-        echo ""
-        return 1
-    fi
-
-    if [[ $arr_length -eq 1 ]]; then
+        echo "nopassword"
+    elif [[ $arr_length -eq 1 ]]; then
         echo "${arr_password[0]}"
-        return 0
-    fi
+    else
+        local new_password
 
-    # shellcheck disable=2068
-    for i in ${arr_password[@]}; do
-        code=$(extract_test "$1" "$i" && echo $?)
+        # shellcheck disable=2068
+        for i in ${arr_password[@]}; do
+            code=$(extract_test "$1" "$i" && echo $?)
 
-        if [[ $code -eq  0 ]]; then
-            echo "$i"
-            return 0
+            if [[ $code -eq  0 ]]; then
+                new_password="$i"
+                break;
+            fi
+        done
+
+        if [[ "$new_password" == '' ]]; then
+            return 1
         fi
-    done
 
-    # no one can matched then do it
-    echo "";
+        echo "$new_password"
+    fi
+    return 0
 }
 
 # $1 file_name
