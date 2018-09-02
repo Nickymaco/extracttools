@@ -401,6 +401,8 @@ main() {
         return 1
     fi
 
+    msg "\\n start extract ================================>"
+
     extract_list "$1" "$pwd" > /dev/null
 
     local count
