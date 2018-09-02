@@ -138,7 +138,7 @@ check_store(){
         cur_dir=$(get_dir)
     fi
 
-    while [[ $(sandbox "fnid \"$cur_dir\" -maxdepth 1 -printf %P\\\\n | grep -ic \"^[^\\\\.]\"") -gt 56 ]]; do
+    while [[ $(sandbox "find \"$cur_dir\" -maxdepth 1 -printf %P\\\\n | grep -ic \"^[^\\\\.]\"") -gt 56 ]]; do
         msg --warn "the path is full"
         cur_dir=$(get_dir)
     done
