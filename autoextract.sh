@@ -401,7 +401,7 @@ main() {
         return 1
     fi
 
-    msg "\\n start extract ================================>"
+    msg --prompt "\\nstart extract ================================>"
 
     extract_list "$1" "$pwd" > /dev/null
 
