@@ -329,12 +329,24 @@ extract_pic(){
     local file_path
     local dir_name
     local save_path
+    local index
 
     msg "Image checking, pleas wait for a moment !\\n"
     pic_count=$(sandbox "grep -c -i -E \"$image_path_pattern\" \"$list_content\"")
 
     if [[ $pic_count -gt 10 ]]; then
-        file_path=$(grep -i -E "$image_path_pattern" "$list_content" | head -n 20 | tee | head -n 1)
+        index=1
+        
+        while read -r line; do
+            if [[ index -eq 1 ]]; then
+                file_path="$line"
+            fi
+
+            echo -e "$line"
+
+            index=$(( index + 1 ))
+        done <<< "$(grep -i -E "$image_path_pattern" "$list_content" | head -n 20)"
+
         dir_name=$(get_basedir "$file_path")
 
         if [[ $assing_dir != '' ]]; then
