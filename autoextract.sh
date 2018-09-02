@@ -291,15 +291,14 @@ del_file(){
     local rm_file
 
     rm_file="${1%.*}"
-    rm_file="${rm_file//part*/part*}.${1##*.}" 
+    rm_file="${rm_file//part*/part\\*}.${1##*.}" 
 
     if [[ $auto_del == true ]]; then
         msg "Moving to trash, trash-list to review !\\n"
         
-        trash-put "$rm_file";
+        sandbox "trash-put $rm_file"
     else
-        #shellcheck disable=SC2086
-        rm -i $rm_file
+        sandbox "rm -i $rm_file"
     fi 
 }
 # file path
