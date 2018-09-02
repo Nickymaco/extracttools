@@ -289,22 +289,17 @@ del_file(){
     fi
 
     local rm_file
-    local find_path
 
     rm_file="${1%.*}"
     rm_file="${rm_file//part*/part*}.${1##*.}" 
-    find_path=$(pwd)
 
     if [[ $auto_del == true ]]; then
         msg "Moving to trash, trash-list to review !\\n"
         
-        find "$find_path" -name "$rm_file" -exec trash-put {} \;
-
-        if [[ -f "$1" ]]; then
-            rm -i "$rm_file";
-        fi
+        trash-put "$rm_file";
     else
-        find "$find_path"  -name "$rm_file" -exec rm -i {} \;
+        #shellcheck disable=SC2086
+        rm -i $rm_file
     fi 
 }
 # file path
