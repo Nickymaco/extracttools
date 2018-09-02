@@ -252,7 +252,7 @@ get_pwd() {
 
     if [[ "$target" != "" && -f "$password_file" ]]; then
         # the key is uniq
-        password=$(sed -n "s/^$target=//gp" "$password_file" | head -n -1)
+        password=$(sed -n "s/^$target=//gp" "$password_file" | head -n 1)
     fi
 
     if [[ "$password" != "" ]]; then
