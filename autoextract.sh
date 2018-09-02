@@ -1,18 +1,22 @@
 #!/bin/bash
 set -e
+declare target
+declare assing_dir
+declare auto_del=false
+declare epassword
+declare only_extrac_pic=false
+declare non_delete=false
 
-export list_content="/tmp/content.txt"
-export config_dir="$HOME/.extract_config"
-export config_file="$config_dir/extract.config"
+declare -r list_content="/tmp/content.txt"
+declare -r config_dir="$HOME/.extract_config"
+declare -r config_file="$config_dir/extract.config"
 
-exclude_file="$HOME/scripts/shell/extractexclude.txt"
+declare -r video_exts=("*.avi" "*.mp4" "*.mov" "*.wmv" "*.rmvb" "*.mkv" "*.flv" "*.mpg" "*.MP4" "*.AVI" "*.MOV" "*.WMV" "*.RMVB" "*.MKV" "*.FLV" "*.MPG")
+declare -r image_exts=("*.jpg" "*.jpeg" "*.png" "*.bmp" "*.JPG" "*.JPEG" "*.PNG" "*.BMP")
 
-video_exts=("*.avi" "*.mp4" "*.mov" "*.wmv" "*.rmvb" "*.mkv" "*.flv" "*.mpg" "*.MP4" "*.AVI" "*.MOV" "*.WMV" "*.RMVB" "*.MKV" "*.FLV" "*.MPG")
-image_exts=("*.jpg" "*.jpeg" "*.png" "*.bmp" "*.JPG" "*.JPEG" "*.PNG" "*.BMP")
-
-video_path_pattern="\\.(mp4|avi|mov|wmv|rmvb|mpg|mkv|flv)$"
-image_path_pattern="\\.(jpg|png|jpeg|bmp)$"
-escape_chars=("\\(" "\\)" "\\[" "\\]" "&" "\\}" "{" "\\$" "^" "~" "!" "\\\`" "\\\"" "'")
+declare -r video_path_pattern="\\.(mp4|avi|mov|wmv|rmvb|mpg|mkv|flv)$"
+declare -r image_path_pattern="\\.(jpg|png|jpeg|bmp)$"
+declare -r escape_chars=("\\(" "\\)" "\\[" "\\]" "&" "\\}" "{" "\\$" "^" "~" "!" "\\\`" "\\\"" "'")
 
 init(){
     if [[ ! -d "$config_dir" ]]; then
@@ -26,6 +30,7 @@ init(){
                 video_album_store=*) export video_album_dir="${line//video_album_store=/}" ;;
                 video_store=*) export video_save_dir="${line//video_store=/}" ;;
                 image_store=*) export image_save_dir="${line//image_store=/}" ;;
+                password_file=*) export password_file="${line//password_file=/}" ;;
             esac
         done < "$config_file"
     fi
@@ -93,88 +98,52 @@ format_save_dir() {
     for char in ${escape_chars[@]}; do
         out_dir="${out_dir//$char/$char}"
     done
-    
-    # Can't extract to the same folder whith archive file
-    if [[ $out_dir == $(pwd) ]]; then
-        out_dir="$out_dir/out"
-    fi
 
     echo "$out_dir"
-}
-
-# return the save path
-check_store(){
-    local cur_dir   
-    local file_count
-    local save_dir
-
-    save_dir="$1"
-
-    if [[ -f "$save_dir" ]]; then
-        cur_dir < "$save_dir"
-    else
-        read -er -p "need a video save path" cur_dir
-    fi
-
-    file_count=0
-
-    for i in "$cur_dir"/*
-    do
-        if [[ -f $i ]]; then
-            file_count=$(( file_count + 1 ))
-        fi
-    done
-
-    if [[ $file_count -gt 55 ]]; then
-        read -er -p "The $cur_dir dir is full, please give a new path: " new_path
-
-        if [ ! -d "$new_path" ]; then
-            mkdir -p "$new_path"
-        fi
-
-        if [[ $($?) -ne 0 ]]; then
-            echo "bad : $cur_dir"
-            return 1
-        fi
-
-        if [[ -f "$save_dir" ]]; then
-            echo "$new_path" | tee "$save_dir"
-        fi
-    else
-        echo "$cur_dir"
-    fi
-}
-
-# $1 file_name
-check_custom_dir(){    
-    if [[ "$1" == *"@custom"* ]]; then
-        if [[ $assing_dir != '' ]]; then
-            echo "$assing_dir"
-        else        
-            read -er -p "Set the new path: " new_dir
-            echo "$new_dir"
-        fi
-    else
-        local store_path
-        store_path=$(check_store "$video_save_dir")
-        echo "$store_path"
-    fi
 }
 
 # $1 dir path
 check_dir(){
     local check_path
-    
-    check_path="${1//\\/}"
 
-    if [[ "$check_path" == '' ]]; then
-        echo -e 'bad path !\n'
-        return 1;
-    elif [[ ! -d "$check_path" ]]; then
+    if [[ "$check_path" != "" && ! -d "$check_path" ]]; then
         mkdir -p "$check_path"
+        echo "0"
+    else
+        echo "1"
+    fi
+}
+
+get_dir() {
+    local dir_path
+
+    while [[ ! -d "$dir_path" ]]; do
+        read -er -p "please give a new path: " dir_path
+
+        if [[ $(check_dir "$dir_path") -eq 0 ]]; then
+            break;
+        fi
+    done
+
+    echo "$dir_path"
+}
+
+# return the save path
+check_store(){
+    local cur_dir   
+
+    cur_dir="$1"
+
+    if [[ $(check_dir "$cur_dir") -ne 0 ]]; then
+        cur_dir=$(get_dir)
     fi
 
-    return $?
+    while [[ $(sandbox "fnid \"$cur_dir\" -maxdepth 1 -printf %P\\\\n | grep -ic \"^[^\\\\.]\"") -gt 56 ]]; do
+        msg --warn "the path is full"
+        cur_dir=$(get_dir)
+    done
+
+    echo "$cur_dir"
 }
 
 # $1 file_name
@@ -186,20 +155,26 @@ extract_file() {
     local excludes
     local exec_cmd
 
+    if [[ -f exclude_file ]]; then
+        if [[ "$1" == *'.zip' ]]; then
+            excludes=" -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")
+        elif [[ "$1" == *'.rar' || "$1" == *'.7z' ]]; then
+            excludes=" -x@\"$exclude_file\""
+        fi
+    fi 
+
     if [[ "$1" == *'.rar' ]]; then
-        exec_cmd="unrar -or -p$2 -x@$exclude_file e $1 ${exts_parrtern[*]} $4"
+        exec_cmd="unrar -or -p\"$2\"$excludes e $1 ${exts_parrtern[*]} $4"
     elif [[ "$1" == *'.zip' ]]; then
-        excludes=$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")
-        exec_cmd="unzip -P$2 -Ocp936 -j $1 ${exts_parrtern[*]} -x $excludes  -d $4"
+        exec_cmd="unzip -P$2 -Ocp936 -j $1 ${exts_parrtern[*]} $excludes  -d $4"
     elif [[ "$1" == *'.7z' ]]; then
-        exec_cmd="7za -p$2 -o$4 -x@$exclude_file e $1 ${exts_parrtern[*]} -sccUTF-8 -aot -r"
+        exec_cmd="7za -p\"$2\" -o\"$4\"$excludes e $1 ${exts_parrtern[*]} -sccUTF-8 -aot -r"
     else
         echo 'unkonw file'
         return 1;
     fi
     
     sandbox "$exec_cmd"
-
     return $?
 }
 
@@ -210,9 +185,9 @@ extract_test() {
     local file_name
 
     if [[ "$1" == *'.rar' ]]; then
-        file_name=$(eval "unrar -p$2 -x@$exclude_file lb $1 ${video_exts[*]} ${image_exts[*]} | head -n 1")
+        file_name=$(eval "unrar -p$2 lb $1 ${video_exts[*]} ${image_exts[*]} | head -n 1")
         file_name=$(format_extract_name "$file_name")
-        timeout -s9 0.5 unrar -p"$2" -x@"$exclude_file" p "$1" "*$file_name" > /dev/null
+        timeout -s9 0.5 unrar -p"$2" p "$1" "*$file_name" > /dev/null
     elif [[ "$1" == *'.7z' || "$1" == *'.zip' ]]; then
         file_name=$(eval "7za -p$2 l $1 ${video_exts[*]} ${image_exts[*]} -r -slt -sscUTF-8 | sed -n '20{s/Path = //p}'")
         file_name=$(format_extract_name "$file_name")
@@ -234,13 +209,29 @@ extract_test() {
 # $2 password
 extract_list() {
     local exec_cmd
+    local excludes
+    local videoext
+    local imgext
 
+    videoext="${video_exts[*]}"
+    videoext="${videoext//\*/\\*}"
+    imgext="${image_exts[*]}"
+    imgext="${imgext//\*/\\*}"
+
+    if [[ -f exclude_file ]]; then
+        if [[ "$1" == *'.zip' ]]; then
+            excludes=" -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")
+        elif [[ "$1" == *'.rar' || "$1" == *'.7z' ]]; then
+            excludes=" -x@\"$exclude_file\""
+        fi
+    fi 
+    
     if [[ "$1" == *'.rar' ]]; then
-        exec_cmd="unrar -p$2 -x@$exclude_file lb $1 ${video_exts[*]} ${image_exts[*]}"
+        exec_cmd="unrar -p\"$2\"$excludes lb $1 $videoext $imgext"
     elif [[ "$1" == *'.zip' ]]; then
-        exec_cmd="unzip -P$2 -Ocp936 -l $1 ${video_exts[*]} ${image_exts[*]} | sed -n '4,/---------/p' | while read -r _ _ _ c4; do echo \$c4; done"
+        exec_cmd="unzip -P$2 -Ocp936 -l $1 $videoext $imgext $excludes | sed -n '4,/---------/p' | while read -r _ _ _ c4; do echo \$c4; done"
     elif [[ "$1" == *'.7z' ]]; then
-        exec_cmd="7za -slt -p$2 -x@$exclude_file l $1 ${video_exts[*]} ${image_exts[*]} -r -sccUTF-8 | sed -n 's/Path = //gp'"
+        exec_cmd="7za -slt -p\"$2\"$excludes l $1 $videoext $imgext -r -sccUTF-8 | sed -n 's/Path = //gp'"
     else
         echo 'unkonw file'
         return 1; 
@@ -257,41 +248,36 @@ get_pwd() {
 
     local arr_password
     local arr_length
+    local password
 
-    case $target in
-        "sjry") arr_password=("sjry") ;;
-        "1024") arr_password=("1024") ;;
-        "taotujie") arr_password=("www.taotufabu.com") ;;
-        "situge") arr_password=("www.yixiumi.com" "www.situge.com" "situge") ;;
-        "sifangclub") arr_password=("sifangclub.com" "sifangclub1.com" "sfjulebu.com" "sifangclub.net") ;;
-        "lululu") arr_password=("lululu.cc" "lululu.lu" "qunalu.cc") ;;
-        *) arr_password=() ;;
-    esac
+    if [[ "$target" != "" && -f "$password_file" ]]; then
+        # the key is uniq
+        password=$(sed -n "s/^$target=//gp" "$password_file" | head n -1)
+    fi
+
+    if [[ "$password" != "" ]]; then
+        read -r -a arr_password <<< "$password"
+    else
+        arr_password=()
+    fi
 
     arr_length=${#arr_password[@]}
 
     if [[ $arr_length -eq 0 ]]; then
-        echo "nopassword"
+        read -r -p "give a password:" -s new_password
+        echo "$new_password"
     elif [[ $arr_length -eq 1 ]]; then
         echo "${arr_password[0]}"
     else
-        local new_password
-
-        # shellcheck disable=2068
-        for i in ${arr_password[@]}; do
-            code=$(extract_test "$1" "$i" && echo $?)
+        for ((i=0; i<arr_length; i++)); do
+            code=$(extract_test "$1" "${arr_password[i]}" && echo $?)
 
             if [[ $code -eq  0 ]]; then
-                new_password="$i"
-                break;
+                echo "${arr_password[i]}"
+                return 0;
             fi
         done
-
-        if [[ "$new_password" == '' ]]; then
-            return 1
-        fi
-
-        echo "$new_password"
+        return 1
     fi
     return 0
 }
@@ -310,7 +296,7 @@ del_file(){
     find_path=$(pwd)
 
     if [[ $auto_del == true ]]; then
-        echo -e "Moving to trash, use trash-list to review !\\n"
+        msg "Moving to trash, trash-list to review !\\n"
         
         find "$find_path" -name "$rm_file" -exec trash-put {} \;
 
@@ -321,60 +307,76 @@ del_file(){
         find "$find_path"  -name "$rm_file" -exec rm -i {} \;
     fi 
 }
+# file path
+get_basedir(){
+    local file_path
+
+    file_path="$1"
+
+    local dir_name
+
+    if [[ $target == 'lululu' ]]; then
+        dir_name="${1%%.*}"
+    elif [[ $target == 'sjry' ]]; then
+        dir_name=$(dirname "$file_path" | awk -F'/' '{print $NF}')
+        if [[ $dir_name == '.' ]]; then
+            dir_name="${dir_name%.*}"
+        fi
+    else
+        dir_name=$(basename "$file_path")
+        dir_name="${dir_name%.*}"
+    fi
+
+    echo "${dir_name// /_}"
+}
 
 # $1 file_name
 # $2 password
 extract_pic(){
-    msg "Image checking, pleas wait for a moment !\\n"
-
     local pic_count
+    local file_path
+    local dir_name
+    local save_path
 
+    msg "Image checking, pleas wait for a moment !\\n"
     pic_count=$(sandbox "grep -c -i -E \"$image_path_pattern\" \"$list_content\"")
 
     if [[ $pic_count -gt 10 ]]; then
-        head -n 20 $list_content 
+        file_path=$(grep -i -E "$image_path_pattern" "$list_content" | head -n 20 | tee | head -n 1)
+        dir_name=$(get_basedir "$file_path")
 
-        if [[ $auto_extr_pic != true ]]; then
-            read -er -p "There are $pic_count pictures. going to extract?" r_look
+        if [[ $assing_dir != '' ]]; then
+            save_path="$assing_dir/$dir_name"
+        elif [[ -d "$image_save_dir"  ]]; then
+            save_path="$image_save_dir/$dir_name"
+        else 
+            save_path="$(pwd)/$dir_name"
+        fi
 
-            if [[ $r_look != 'y' && $r_look != 'yes' ]]; then
+        msg --warn "Confim the save path $save_path \\n"
+
+        read -er -p "[y]es or [n]ew or [e]xit:" confirm
+
+        case $confirm in
+            n|new) 
+                save_path=$(get_dir)
+                ;;
+            e|exit)
                 del_file "$1"
-                return 0;
-            fi
-        fi
-
-        msg --prompt "Current file name: $1 \\n"
-
-        if [[ $assing_dir != '' ]]; then
-            msg --warn "Warn, you had set parent dir :$assing_dir \\n That will be output to here! \\n"
-        fi
-
-        read -er -p "Set the path and exts_parrtern:" r_path r_ext
-
-        local save_path
-
-        if [[ $assing_dir != '' ]]; then
-            save_path="$assing_dir/$r_path"
-        else
-            save_path="$r_path"
-        fi
+                return 0
+                ;;
+            *) 
+                if [[ "$confirm" != "y" && "$confirm" != "yes" ]]; then
+                    msg --error "unkonw confirm !\\n"
+                    return 1
+                fi
+                ;;
+        esac
 
         save_path=$(format_save_dir "$save_path")
+        check_dir "$save_path"
 
-        local code
-
-        code=$(check_dir "$save_path" && echo $?)
-
-        if [[ $code -ne 0 ]]; then
-            return "$code"
-        fi
-
-        if [[ "$r_ext" == "" ]]; then
-            extract_file "$1" "$2" "${image_exts[*]}" "$save_path"
-        else
-            extract_file "$1" "$2" "$r_ext" "$save_path"   
-        fi     
-
+        extract_file "$1" "$2" "${image_exts[*]}" "$save_path" 
         del_file "$1"
     else
         msg --prompt "there are no more pictures ! \\n"
@@ -412,27 +414,12 @@ main() {
     fi
 
     local file_path
-
-    file_path=$(sandbox "grep -i -E \"$video_path_pattern\" \"$list_content\"" | head -n 1)
-
     local dir_name
 
-    if [[ $target == 'lululu' ]]; then
-        dir_name="${1%%.*}"
-    elif [[ $target == 'sjry' ]]; then
-        dir_name=$(dirname "$file_path" | gawk -F'/' '{print $NF}')
-        if [[ $dir_name == '.' ]]; then
-            dir_name="${dir_name%.*}"
-        fi
-    else
-        dir_name=$(basename "$file_path")
-        dir_name="${dir_name%.*}"
-    fi
-
-    dir_name="${dir_name// /_}"
+    file_path=$(sandbox "grep -i -E \"$video_path_pattern\" \"$list_content\"" | head -n 1)
+    dir_name=$(get_basedir "$file_path")
 
     local exp_dir
-    local check_album_dir
     local code
     local file_name
     local extract_pattern
@@ -440,51 +427,49 @@ main() {
     local new_file_name
 
     if [[ $count -gt 1 ]]; then
-        if [[ "$assing_dir" != "" ]]; then
-            exp_dir=$(format_save_dir "$assing_dir")
+        if [[ -d "$assing_dir" ]]; then
+            exp_dir=$(check_store "$assing_dir")"/$dir_name"
         else
-            check_album_dir=$(check_store "$video_album_dir")
-            exp_dir="$check_album_dir/$dir_name"
-
-            read -er -p "There are more then one media file, would you like extract to here :$exp_dir " r_answered
-
-            if [[ $r_answered != 'y' && $r_answered != 'yes' && $r_answered != '' ]]; then
-                grep -i -E "$video_path_pattern" "$list_content"
-                read -er -p "Please give the new path :" exp_new_path
-                exp_dir=$(format_save_dir "$exp_new_path")
-            fi            
+            exp_dir=$(check_store "$video_album_dir")"/$dir_name"           
         fi
+        
+        msg --warn "There are more then one media file. Confirm save path: $exp_dir"
 
-        code=$(check_dir "$exp_dir" && echo $?)
+        read -er -p "[y]es or [n]ew or [e]xit" answer
 
-        if [[ $code -ne 0 ]]; then
-            msg --error "Check faile save dir ! \\n"
-            return "$code"
-        fi
+        case $answer in 
+            n|new)
+                exp_dir=$(check_store "") 
+                ;;
+            e|exit)
+                extract_pic "$1" "$pwd"
+                return 0
+                ;;
+             *) 
+                if [[ "$confirm" != "y" && "$confirm" != "yes" ]]; then
+                    msg --error "unkonw confirm !\\n"
+                    return 1
+                fi
+                ;;
+        esac
 
+        exp_dir=$(format_save_dir "$exp_dir")
         extract_file "$1" "$pwd" "${video_exts[*]}" "$exp_dir"
         
         ls -l --block-size=M "$exp_dir"
     else
-        msg --prompt "file: $1 ! \\n Current extract to: $file_path \\n"
-
-        exp_dir=$(check_custom_dir "$1")
+        exp_dir=$(check_store "$video_save_dir")
         exp_dir=$(format_save_dir "$exp_dir")
-        code=$(check_dir "$exp_dir")
-
-        if [[ $code -ne 0 ]]; then
-            return "$code"
-        fi
 
         file_name=$(basename "$file_path")
         extract_pattern="*"$(format_extract_name "$file_name")
         ext=$(echo "${file_name##*.}" | tr '[:upper:]' '[:lower:]')
-        new_file_name=$(echo "$dir_name.$ext" | sed "s/ //g;s/[\\!\\,\\']*//g;s/@custom//g")
+        new_file_name=$(echo "$dir_name.$ext" | sed "s/ //g;s/[!,']//g")
         
         extract_file "$1" "$pwd" "$extract_pattern" "$exp_dir"
 
         if [[ "$file_name" != "$new_file_name" ]]; then
-            mv "$exp_dir/$file_name" "$exp_dir/$new_file_name"
+            mv "${exp_dir//\\/}/$file_name" "${exp_dir//\\/}/$new_file_name"
         fi
         
         file "$exp_dir/$new_file_name"
@@ -501,10 +486,9 @@ while getopts :D: opt; do
     # shellcheck disable=SC2214
     case $OPTARG in
         tag=*) target="${OPTARG//tag=/}" ;;
-        output=*) assing_dir=$(format_save_dir "${OPTARG//output=/}") ;;
+        output=*) assing_dir="${OPTARG//output=/}" ;;
         trash) auto_del=true ;;
         pwd=*) epassword="${OPTARG//pwd=/}" ;;
-        pic) auto_extr_pic=true ;;
         onlypic) only_extrac_pic=true ;;
         nodel) non_delete=true ;;
     esac
