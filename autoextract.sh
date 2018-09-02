@@ -264,7 +264,7 @@ get_pwd() {
     arr_length=${#arr_password[@]}
 
     if [[ $arr_length -eq 0 ]]; then
-        read -r -p "give a password:" -s new_password
+        read -er -p "give a password:" -s new_password
         echo "$new_password"
     elif [[ $arr_length -eq 1 ]]; then
         echo "${arr_password[0]}"
