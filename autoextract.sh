@@ -291,7 +291,7 @@ del_file(){
     local rm_file
 
     rm_file="${1%.*}"
-    rm_file="${rm_file//part*/part\\*}.${1##*.}" 
+    rm_file="${rm_file//part*/part*}.${1##*.}" 
 
     if [[ $auto_del == true ]]; then
         msg "Moving to trash, trash-list to review !\\n"
