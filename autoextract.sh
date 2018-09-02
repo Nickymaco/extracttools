@@ -330,6 +330,7 @@ extract_pic(){
     local dir_name
     local save_path
     local index
+    local parttern
 
     msg "Image checking, pleas wait for a moment !\\n"
     pic_count=$(sandbox "grep -c -i -E \"$image_path_pattern\" \"$list_content\"")
@@ -359,7 +360,7 @@ extract_pic(){
 
         msg --warn "Confim the save path $save_path \\n"
 
-        read -er -p "[y]es or [n]ew or [e]xit:" confirm
+        read -er -p "[y]es or [n]ew or [e]xit, file partten [option]:" confirm parttern
 
         case $confirm in
             n|new) 
@@ -380,7 +381,11 @@ extract_pic(){
         save_path=$(format_save_dir "$save_path")
         check_dir "$save_path"
 
-        extract_file "$1" "$2" "${image_exts[*]}" "$save_path" 
+        if [[ "$parttern" != "" ]]; then
+            extract_file "$1" "$2" "$parttern" "$save_path" 
+        else
+            extract_file "$1" "$2" "${image_exts[*]}" "$save_path" 
+        fi
         del_file "$1"
     else
         msg --prompt "there are no more pictures ! \\n"
