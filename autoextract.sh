@@ -121,11 +121,19 @@ check_dir(){
     fi
 }
 
+# $1 the prompt message
 get_dir() {
     local dir_path
+    local prompt_msg
+
+    if [[ "$1" != "" ]]; then
+        prompt_msg="$1"
+    else
+        prompt_msg="please give a new path"
+    fi
 
     while [[ ! -d "$dir_path" ]]; do
-        read -er -p "please give a new path: " dir_path
+        read -er -p "$prompt_msg: " dir_path
 
         if [[ $(check_dir "$dir_path") -eq 0 ]]; then
             break;
@@ -146,8 +154,7 @@ check_store(){
     fi
 
     while [[ $(sandbox "find \"$cur_dir\" -maxdepth 1 -printf %P\\\\n | grep -ic \"^[^\\\\.]\"") -gt 56 ]]; do
-        msg --warn "the path is full"
-        cur_dir="$(get_dir)"
+        cur_dir="$(get_dir "The dir is full, please give a new path")"
     done
 
     echo "$cur_dir"
