@@ -443,7 +443,7 @@ main() {
 
     index=0
 
-    while read line ; do
+    while read -r line ; do
         if [[ index -eq 0  ]]; then
             file_path="$line"
         fi
