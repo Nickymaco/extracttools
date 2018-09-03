@@ -143,12 +143,12 @@ check_store(){
     cur_dir="$1"
 
     if [[ $(check_dir "$cur_dir") -ne 0 ]]; then
-        cur_dir=$(get_dir)
+        cur_dir="$(get_dir)"
     fi
 
     while [[ $(sandbox "find \"$cur_dir\" -maxdepth 1 -printf %P\\\\n | grep -ic \"^[^\\\\.]\"") -gt 56 ]]; do
         msg --warn "the path is full"
-        cur_dir=$(get_dir)
+        cur_dir="$(get_dir)"
     done
 
     echo "$cur_dir"
@@ -353,7 +353,7 @@ extract_pic(){
                 file_path="$line"
             fi
 
-            echo -e "$line"
+            msg "Found -> $line"
 
             index=$(( index + 1 ))
         done <<< "$(grep -i -E "$image_path_pattern" "$list_content" | head -n 20)"
@@ -370,7 +370,7 @@ extract_pic(){
 
         msg --warn "Confim the save path $save_path \\n"
 
-        read -er -p "[y]es or [n]ew or [e]xit, file partten [option]:" confirm parttern
+        read -r -p "[y]es or [n]ew or [e]xit, file partten [option]:" confirm parttern
 
         case $confirm in
             n|new) 
@@ -435,9 +435,19 @@ main() {
     fi
 
     local file_path
-    local dir_name
+    local index
 
-    file_path=$(sandbox "grep -i -E \"$video_path_pattern\" \"$list_content\"" | head -n 1)
+    index = 0
+
+    while read line ; do
+        if [[ index -eq 0  ]]; then
+            file_path="$line"
+        fi
+        msg "Found -> $line"
+
+    done <<< "$(grep -i -E "$video_path_pattern" "$list_content")"
+
+    local dir_name
     dir_name=$(get_basedir "$file_path")
 
     local exp_dir
@@ -456,7 +466,7 @@ main() {
         
         msg --warn "There are more then one media file. Confirm save path: $exp_dir"
 
-        read -er -p "[y]es or [n]ew or [e]xit" answer
+        read -r -p "[y]es or [n]ew or [e]xit" answer
 
         case $answer in 
             n|new)
@@ -492,8 +502,8 @@ main() {
         if [[ "$file_name" != "$new_file_name" ]]; then
             mv "${exp_dir//\\/}/$file_name" "${exp_dir//\\/}/$new_file_name"
         fi
-        
-        file "$exp_dir/$new_file_name"
+
+        msg --prompt "$(file '$exp_dir/$new_file_name')"
     fi
 
     extract_pic "$1" "$pwd"
