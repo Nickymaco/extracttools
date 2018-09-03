@@ -448,7 +448,6 @@ main() {
             file_path="$line"
         fi
         msg "Found -> $line"
-
     done <<< "$(grep -i -E "$video_path_pattern" "$list_content")"
 
     local dir_name
