@@ -112,8 +112,10 @@ format_save_dir() {
 
 # $1 dir path
 check_dir(){
-    if [[ "$1" != "" && ! -d "$1" ]]; then
-        mkdir -p "$1"
+    if [[ "$1" != "" ]]; then
+        if [[ ! -d "$1" ]]; then
+            mkdir -p "$1"
+        fi
         echo "0"
     else
         echo "1"
