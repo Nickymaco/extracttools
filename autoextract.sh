@@ -311,7 +311,7 @@ del_file(){
     sandbox "trash-put $rm_file"
 }
 # $1 file path
-# $2 fiel name
+# $2 file name
 get_basedir(){
     local file_path
     local file_name
@@ -326,7 +326,7 @@ get_basedir(){
     elif [[ $target == 'sjry' ]]; then
         dir_name=$(dirname "$file_path" | awk -F'/' '{print $NF}')
         if [[ $dir_name == '.' ]]; then
-            dir_name="${dir_name%.*}"
+            dir_name="${file_name%.*}"
         fi
     else
         dir_name=$(basename "$file_path")
