@@ -3,10 +3,9 @@ set -e
 # execute arguments
 declare target
 declare assing_dir
-declare auto_del=false
+declare auto_del=true
 declare epassword
 declare only_extrac_pic=false
-declare non_delete=false
 
 # environment variable
 declare exclude_file
@@ -292,7 +291,7 @@ get_pwd() {
 
 # $1 file_name
 del_file(){
-    if [[ $non_delete == true ]]; then
+    if [[ $auto_del == false ]]; then
         return 0;
     fi
 
@@ -301,13 +300,8 @@ del_file(){
     rm_file="${1%.*}"
     rm_file="${rm_file//part*/part*}.${1##*.}" 
 
-    if [[ $auto_del == true ]]; then
-        msg "Moving to trash, trash-list to review !\\n"
-        
-        sandbox "trash-put $rm_file"
-    else
-        sandbox "rm -i $rm_file"
-    fi 
+    msg "Moving to trash, trash-list to review !\\n"
+    sandbox "trash-put $rm_file"
 }
 # file path
 get_basedir(){
@@ -437,7 +431,7 @@ main() {
     local file_path
     local index
 
-    index = 0
+    index=0
 
     while read line ; do
         if [[ index -eq 0  ]]; then
@@ -518,10 +512,9 @@ while getopts :D: opt; do
     case $OPTARG in
         tag=*) target="${OPTARG//tag=/}" ;;
         output=*) assing_dir="${OPTARG//output=/}" ;;
-        trash) auto_del=true ;;
+        notrash) auto_del=false ;;
         pwd=*) epassword="${OPTARG//pwd=/}" ;;
         onlypic) only_extrac_pic=true ;;
-        nodel) non_delete=true ;;
     esac
 done
 
