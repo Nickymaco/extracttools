@@ -464,9 +464,9 @@ main() {
 
     if [[ $count -gt 1 ]]; then
         if [[ -d "$assing_dir" ]]; then
-            exp_dir=$(check_store "$assing_dir")"/$dir_name"
+            exp_dir="$(check_store "$assing_dir/$dir_name")"
         else
-            exp_dir=$(check_store "$video_album_dir")"/$dir_name"           
+            exp_dir="$(check_store "$video_album_dir/$dir_name")"           
         fi
         
         msg --warn "There are more then one media file. Confirm save path: $exp_dir"
