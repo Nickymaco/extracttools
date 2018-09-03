@@ -372,7 +372,7 @@ extract_pic(){
             save_path="$(pwd)/$dir_name"
         fi
 
-        msg --warn "Confim the save path $save_path \\n"
+        msg --warn "\\nConfim the save path $save_path \\n"
 
         read -r -p "[y]es or [n]ew or [e]xit, file partten [option]:" confirm parttern
 
@@ -424,7 +424,7 @@ main() {
         return 1
     fi
 
-    msg --prompt "\\nstart extract ================================>"
+    msg --prompt "\\nstart extract ================================>\\n"
 
     extract_list "$1" "$pwd" > /dev/null
 
@@ -469,7 +469,7 @@ main() {
             exp_dir="$(check_store "$video_album_dir/$dir_name")"           
         fi
         
-        msg --warn "There are more then one media file. Confirm save path: $exp_dir"
+        msg --warn "\\nThere are more then one media file. Confirm save path: $exp_dir"
 
         read -r -p "[y]es or [n]ew or [e]xit: " confirm
 
