@@ -250,7 +250,7 @@ extract_list() {
         echo 'unkonw file'
         return 1; 
     fi
-    sandbox "$exec_cmd | tee $list_content"
+    sandbox "$exec_cmd > $list_content"
     return $?
 }
 
@@ -506,7 +506,7 @@ main() {
 
         if [[ "$file_name" != "$new_file_name" ]]; then
             msg "Rename ${exp_dir//\\/}/$file_name to ${exp_dir//\\/}/$new_file_name"
-            mv "${exp_dir//\\/}"/"$file_name" "${exp_dir//\\/}/$new_file_name"
+            mv ${exp_dir//\\/}/${file_name} "${exp_dir//\\/}/$new_file_name"
         fi
 
         msg --prompt "\\n$(file "$exp_dir/$new_file_name")"
