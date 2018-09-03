@@ -310,16 +310,19 @@ del_file(){
     msg "Moving to trash, trash-list to review !\\n"
     sandbox "trash-put $rm_file"
 }
-# file path
+# $1 file path
+# $2 fiel name
 get_basedir(){
     local file_path
+    local file_name
 
     file_path="$1"
+    file_name="$2"
 
     local dir_name
 
     if [[ $target == 'lululu' ]]; then
-        dir_name="${1%%.*}"
+        dir_name="${file_name%%.*}"
     elif [[ $target == 'sjry' ]]; then
         dir_name=$(dirname "$file_path" | awk -F'/' '{print $NF}')
         if [[ $dir_name == '.' ]]; then
@@ -359,7 +362,7 @@ extract_pic(){
             index=$(( index + 1 ))
         done <<< "$(grep -i -E "$image_path_pattern" "$list_content" | head -n 20)"
 
-        dir_name=$(get_basedir "$file_path")
+        dir_name=$(get_basedir "$file_path" "$1")
 
         if [[ $assing_dir != '' ]]; then
             save_path="$assing_dir/$dir_name"
@@ -449,7 +452,8 @@ main() {
     done <<< "$(grep -i -E "$video_path_pattern" "$list_content")"
 
     local dir_name
-    dir_name=$(get_basedir "$file_path")
+
+    dir_name=$(get_basedir "$file_path" "$1")
 
     local exp_dir
     local code
