@@ -471,9 +471,9 @@ main() {
         
         msg --warn "There are more then one media file. Confirm save path: $exp_dir"
 
-        read -r -p "[y]es or [n]ew or [e]xit" answer
+        read -r -p "[y]es or [n]ew or [e]xit: " confirm
 
-        case $answer in 
+        case $confirm in 
             n|new)
                 exp_dir=$(check_store "") 
                 ;;
