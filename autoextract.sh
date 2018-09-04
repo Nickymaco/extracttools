@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+
 # execute arguments
 declare target
 declare assing_dir
@@ -7,13 +8,6 @@ declare auto_del=true
 declare epassword
 declare only_extrac_pic=false
 declare basename
-
-# environment variable
-declare exclude_file
-declare video_album_dir
-declare video_save_dir
-declare image_save_dir
-declare password_file
 
 declare -r list_content="/tmp/content.txt"
 declare -r config_dir="$HOME/.extract_config"
@@ -31,14 +25,25 @@ init(){
         mkdir -p "$HOME/.extract_config"
     fi
 
+    # environment variable
     if [[ -f "$config_file" ]]; then
         while read -r line; do
             case $line in
-                exclude=*) exclude_file="${line//exclude=/}" ;;
-                video_album_store=*) video_album_dir="${line//video_album_store=/}" ;;
-                video_store=*) video_save_dir="${line//video_store=/}" ;;
-                image_store=*) image_save_dir="${line//image_store=/}" ;;
-                password_file=*) password_file="${line//password_file=/}" ;;
+                exclude=*) 
+                    declare -r exclude_file="${line//exclude=/}" 
+                    ;;
+                video_album_store=*) 
+                    declare -r video_album_dir="${line//video_album_store=/}" 
+                    ;;
+                video_store=*) 
+                    declare -r video_save_dir="${line//video_store=/}" 
+                    ;;
+                image_store=*) 
+                    declare -r image_save_dir="${line//image_store=/}" 
+                    ;;
+                password_file=*) 
+                    declare -r password_file="${line//password_file=/}" 
+                    ;;
             esac
         done < "$config_file"
     fi
@@ -145,8 +150,16 @@ get_dir() {
 }
 
 # return the save path
+# $1 max count [option]
 check_store(){
     local cur_dir   
+    local max_count
+
+    if [[ "$1" -gt 0 ]]; then
+        max_count=$(( $1 ))
+    else
+        max_count=55
+    fi
 
     cur_dir="$1"
 
@@ -154,7 +167,7 @@ check_store(){
         cur_dir="$(get_dir)"
     fi
 
-    while [[ $(sandbox "find \"$cur_dir\" -maxdepth 1 -printf %P\\\\n | grep -ic \"^[^\\\\.]\"") -gt 56 ]]; do
+    while [[ $(sandbox "find \"$cur_dir\" -maxdepth 1 -printf %P\\\\n | grep -ic \"^[^\\\\.]\"") -gt $max_count ]]; do
         cur_dir="$(get_dir "The dir is full, please give a new path")"
     done
 
@@ -387,7 +400,11 @@ extract_pic(){
         if [[ $assing_dir != '' ]]; then
             save_path="$assing_dir/$dir_name"
         elif [[ -d "$image_save_dir"  ]]; then
-            save_path="$image_save_dir/$dir_name"
+            local img_save_path
+
+            img_save_path=$(check_store "$image_save_dir" 30)
+
+            save_path="$img_save_path/$dir_name"
         else 
             save_path="$(pwd)/$dir_name"
         fi
