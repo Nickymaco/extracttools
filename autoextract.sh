@@ -117,7 +117,7 @@ format_save_dir() {
         out_dir="${out_dir//$char/$char}"
     done
 
-    echo "${out_dir// /\\ }"
+    echo "$out_dir"
 }
 
 # $1 dir path
@@ -197,11 +197,11 @@ extract_file() {
     fi 
 
     if [[ "$1" == *'.rar' ]]; then
-        exec_cmd="unrar -or -p\"$2\"$excludes e $1 ${exts_parrtern[*]} $4"
+        exec_cmd="unrar -or -p\"$2\"$excludes e $1 ${exts_parrtern[*]} ${4// /\\\\ }"
     elif [[ "$1" == *'.zip' ]]; then
-        exec_cmd="unzip -P$2 -Ocp936 -j $1 ${exts_parrtern[*]} $excludes  -d $4"
+        exec_cmd="unzip -P$2 -Ocp936 -j $1 ${exts_parrtern[*]} $excludes  -d ${4// /\\\\ }"
     elif [[ "$1" == *'.7z' ]]; then
-        exec_cmd="7za -p\"$2\" -o\"$4\"$excludes e $1 ${exts_parrtern[*]} -sccUTF-8 -aot -r"
+        exec_cmd="7za -p\"$2\" -o\"${4// /\\\\ }\"$excludes e $1 ${exts_parrtern[*]} -sccUTF-8 -aot -r"
     else
         echo 'unkonw file'
         return 1;
