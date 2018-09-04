@@ -338,7 +338,7 @@ get_basename(){
         tree) 
             base_name=$(dirname "$file_path" | awk -F'/' '{print $NF}')
             
-            if [[ "$dir_name" == '.' ]]; then
+            if [[ "$base_name" == '.' ]]; then
                 local confirm
 
                 read -r -p "The $file_path have not subtree, do want to give a new name [y]es or by default: " confirm
@@ -352,7 +352,7 @@ get_basename(){
 
                     base_name="$new_name"
                 else
-                    base_name="${dir_name%.*}"
+                    base_name="${base_name%.*}"
                 fi
             fi
             ;;
