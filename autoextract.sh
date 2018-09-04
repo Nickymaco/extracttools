@@ -444,7 +444,7 @@ main() {
         return 1
     fi
 
-    msg --prompt "\\n☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆\\n"
+    msg "\\n//////////////////////// ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ ////////////////////////\\n"
 
     extract_list "$1" "$pwd" > /dev/null
 
@@ -519,7 +519,7 @@ main() {
         file_name=$(basename "$file_path")
         extract_pattern="*"$(format_extract_name "$file_name")
         ext=$(echo "${file_name##*.}" | tr '[:upper:]' '[:lower:]')
-        new_file_name=$(echo "$dir_name.$ext" | sed "s/ //g;s/[!,']//g")
+        new_file_name=$(echo "$dir_name.$ext" | sed "s/\\W//g")
         
         extract_file "$1" "$pwd" "$extract_pattern" "$exp_dir"
 
