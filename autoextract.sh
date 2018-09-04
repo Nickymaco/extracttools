@@ -112,11 +112,6 @@ format_save_dir() {
 
     out_dir=$(echo "$1" | sed 's/\/*$//g')
 
-    # shellcheck disable=SC2068
-    for char in ${escape_chars[@]}; do
-        out_dir="${out_dir//$char/$char}"
-    done
-
     echo "$out_dir"
 }
 
