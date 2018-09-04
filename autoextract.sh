@@ -117,7 +117,7 @@ format_save_dir() {
         out_dir="${out_dir//$char/$char}"
     done
 
-    echo "$out_dir"
+    echo "${out_dir// /\\ }"
 }
 
 # $1 dir path
