@@ -160,8 +160,8 @@ check_store(){
     local cur_dir   
     local max_count
 
-    if [[ "$1" -gt 0 ]]; then
-        max_count=$(( $1 ))
+    if [[ "$2" -gt 0 ]]; then
+        max_count=$(( $2 ))
     else
         max_count=55
     fi
