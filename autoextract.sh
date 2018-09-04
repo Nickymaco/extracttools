@@ -144,7 +144,7 @@ get_dir() {
     fi
 
     while [[ ! -d "$dir_path" ]]; do
-        read -er -p "$prompt_msg: " dir_path
+        IFS=$'\n' read -er -p "$prompt_msg: " dir_path
 
         if [[ $(check_dir "$dir_path") -eq 0 ]]; then
             break;
