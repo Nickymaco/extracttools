@@ -6,7 +6,7 @@ declare assing_dir
 declare auto_del=true
 declare epassword
 declare only_extrac_pic=false
-declare basedir
+declare basename
 
 # environment variable
 declare exclude_file
@@ -313,21 +313,21 @@ del_file(){
 }
 # $1 file path
 # $2 file name
-get_basedir(){
+get_basename(){
     local file_path
     local file_name
 
     file_path="$1"
     file_name="$2"
 
-    local dir_name
+    local base_name
 
-    case $basedir in
+    case $basename in
         file) 
-            dir_name="${file_name%%.*}" 
+            base_name="${file_name%%.*}" 
             ;;
         tree) 
-            dir_name=$(dirname "$file_path" | awk -F'/' '{print $NF}')
+            base_name=$(dirname "$file_path" | awk -F'/' '{print $NF}')
             
             if [[ "$dir_name" == '.' ]]; then
                 local confirm
@@ -341,19 +341,19 @@ get_basedir(){
                         read -r -p "Please give a new name: " new_name
                     done
 
-                    dir_name="$new_name"
+                    base_name="$new_name"
                 else
-                    dir_name="${dir_name%.*}"
+                    base_name="${dir_name%.*}"
                 fi
             fi
             ;;
         *)
-            dir_name=$(basename "$file_path")
-            dir_name="${dir_name%.*}"
+            base_name=$(basename "$file_path")
+            base_name="${base_name%.*}"
             ;;
     esac
 
-    echo "${dir_name// /_}"
+    echo "${base_name// /_}"
 }
 
 # $1 file_name
@@ -382,7 +382,7 @@ extract_pic(){
             index=$(( index + 1 ))
         done <<< "$(grep -i -E "$image_path_pattern" "$list_content" | head -n 20)"
 
-        dir_name=$(get_basedir "$file_path" "$1")
+        dir_name=$(get_basename "$file_path" "$1")
 
         if [[ $assing_dir != '' ]]; then
             save_path="$assing_dir/$dir_name"
@@ -444,7 +444,7 @@ main() {
         return 1
     fi
 
-    msg "\\n//////////////////////// ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆ ////////////////////////\\n"
+    msg "\\n////////////////////////////////////////////////\\n"
 
     extract_list "$1" "$pwd" > /dev/null
 
@@ -470,9 +470,9 @@ main() {
         msg "Found -> $line"
     done <<< "$(grep -i -E "$video_path_pattern" "$list_content")"
 
-    local dir_name
+    local base_name
 
-    dir_name=$(get_basedir "$file_path" "$1")
+    base_name=$(get_basename "$file_path" "$1")
 
     local exp_dir
     local code
@@ -483,9 +483,9 @@ main() {
 
     if [[ $count -gt 1 ]]; then
         if [[ -d "$assing_dir" ]]; then
-            exp_dir="$(check_store "$assing_dir/$dir_name")"
+            exp_dir="$(check_store "$assing_dir/$base_name")"
         else
-            exp_dir="$(check_store "$video_album_dir/$dir_name")"           
+            exp_dir="$(check_store "$video_album_dir/$base_name")"           
         fi
         
         msg --warn "\\nThere are more then one media file. Confirm save path: $exp_dir"
@@ -519,7 +519,7 @@ main() {
         file_name=$(basename "$file_path")
         extract_pattern="*"$(format_extract_name "$file_name")
         ext=$(echo "${file_name##*.}" | tr '[:upper:]' '[:lower:]')
-        new_file_name=$(echo "$dir_name.$ext" | sed "s/\\W//g")
+        new_file_name="$(echo "$base_name" | sed "s/\\W//g").$ext"
         
         extract_file "$1" "$pwd" "$extract_pattern" "$exp_dir"
 
@@ -545,7 +545,7 @@ while getopts :D: opt; do
         notrash) auto_del=false ;;
         pwd=*) epassword="${OPTARG//pwd=/}" ;;
         onlypic) only_extrac_pic=true ;;
-        basedir) basedir="$OPTARG"
+        basename) basename="$OPTARG"
     esac
 done
 
