@@ -545,7 +545,7 @@ while getopts :D: opt; do
         notrash) auto_del=false ;;
         pwd=*) epassword="${OPTARG//pwd=/}" ;;
         onlypic) only_extrac_pic=true ;;
-        basename) basename="$OPTARG"
+        basename=*) basename="$OPTARG"
     esac
 done
 
