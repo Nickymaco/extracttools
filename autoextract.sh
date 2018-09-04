@@ -18,7 +18,6 @@ declare -r image_exts=("*.jpg" "*.jpeg" "*.png" "*.bmp" "*.JPG" "*.JPEG" "*.PNG"
 
 declare -r video_path_pattern="\\.(mp4|avi|mov|wmv|rmvb|mpg|mkv|flv)$"
 declare -r image_path_pattern="\\.(jpg|png|jpeg|bmp)$"
-declare -r escape_chars=("\\(" "\\)" "\\[" "\\]" "&" "\\}" "{" "\\$" "^" "~" "!" "\\\`" "\\\"" "'")
 
 init(){
     if [[ ! -d "$config_dir" ]]; then
@@ -94,16 +93,13 @@ file_info(){
 
 # $1 file_name
 format_extract_name() {
-    local new_file_name
+    local file_name
+    local file_ext
 
-    new_file_name=$1
-
-    # shellcheck disable=SC2068
-    for char in ${escape_chars[@]}; do
-        new_file_name="${new_file_name//$char/*}"
-    done
-
-    echo "${new_file_name// /*}"
+    file_ext="${1##*.}"
+    file_name="${1%.*}"
+    file_name=$(echo "$file_name" | sed 's/\\M/*/g')
+    echo "$file_name.$file_ext"
 }
 
 # $1 dir path
