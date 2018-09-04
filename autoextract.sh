@@ -6,6 +6,7 @@ declare assing_dir
 declare auto_del=true
 declare epassword
 declare only_extrac_pic=false
+declare basedir
 
 # environment variable
 declare exclude_file
@@ -321,17 +322,36 @@ get_basedir(){
 
     local dir_name
 
-    if [[ $target == 'lululu' ]]; then
-        dir_name="${file_name%%.*}"
-    elif [[ $target == 'sjry' ]]; then
-        dir_name=$(dirname "$file_path" | awk -F'/' '{print $NF}')
-        if [[ $dir_name == '.' ]]; then
-            dir_name="${file_name%.*}"
-        fi
-    else
-        dir_name=$(basename "$file_path")
-        dir_name="${dir_name%.*}"
-    fi
+    case $basedir in
+        file) 
+            dir_name="${file_name%%.*}" 
+            ;;
+        tree) 
+            dir_name=$(dirname "$file_path" | awk -F'/' '{print $NF}')
+            
+            if [[ "$dir_name" == '.' ]]; then
+                local confirm
+
+                read -r -p "The $file_path have not subtree, do want to give a new name [y]es or by default: " confirm
+
+                if [[ "$confirm" == "y" || "$confirm" == "yes" ]]; then
+                    local new_name
+
+                    while [[ "$new_name" == "" ]]; do
+                        read -r -p "Please give a new name: " new_name
+                    done
+
+                    dir_name="$new_name"
+                else
+                    dir_name="${dir_name%.*}"
+                fi
+            fi
+            ;;
+        *)
+            dir_name=$(basename "$file_path")
+            dir_name="${dir_name%.*}"
+            ;;
+    esac
 
     echo "${dir_name// /_}"
 }
@@ -424,7 +444,7 @@ main() {
         return 1
     fi
 
-    msg --prompt "\\nstart extract ================================>\\n"
+    msg --prompt "\\n☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆\\n"
 
     extract_list "$1" "$pwd" > /dev/null
 
@@ -525,6 +545,7 @@ while getopts :D: opt; do
         notrash) auto_del=false ;;
         pwd=*) epassword="${OPTARG//pwd=/}" ;;
         onlypic) only_extrac_pic=true ;;
+        basedir) basedir="$OPTARG"
     esac
 done
 
