@@ -9,6 +9,13 @@ declare epassword
 declare only_extrac_pic=false
 declare basename
 
+# environment variable
+declare exclude_file
+declare video_album_dir
+declare video_save_dir
+declare image_save_dir
+declare password_file
+
 declare -r list_content="/tmp/content.txt"
 declare -r config_dir="$HOME/.extract_config"
 declare -r config_file="$config_dir/extract.config"
@@ -29,21 +36,11 @@ init(){
     if [[ -f "$config_file" ]]; then
         while read -r line; do
             case $line in
-                exclude=*) 
-                    declare -r exclude_file="${line//exclude=/}" 
-                    ;;
-                video_album_store=*) 
-                    declare -r video_album_dir="${line//video_album_store=/}" 
-                    ;;
-                video_store=*) 
-                    declare -r video_save_dir="${line//video_store=/}" 
-                    ;;
-                image_store=*) 
-                    declare -r image_save_dir="${line//image_store=/}" 
-                    ;;
-                password_file=*) 
-                    declare -r password_file="${line//password_file=/}" 
-                    ;;
+                exclude=*) declare -r exclude_file="${line//exclude=/}" ;;
+                video_album_store=*) declare -r video_album_dir="${line//video_album_store=/}" ;;
+                video_store=*) declare -r video_save_dir="${line//video_store=/}" ;;
+                image_store=*) declare -r image_save_dir="${line//image_store=/}" ;;
+                password_file=*) declare -r password_file="${line//password_file=/}" ;;
             esac
         done < "$config_file"
     fi
