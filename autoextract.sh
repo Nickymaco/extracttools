@@ -7,7 +7,7 @@ declare assing_dir
 declare auto_del=true
 declare epassword
 declare only_extrac_pic=false
-declare basename
+declare base_name_type
 
 declare -r list_content="/tmp/content.txt"
 declare -r config_dir="$HOME/.extract_config"
@@ -331,7 +331,7 @@ get_basename(){
 
     local base_name
 
-    case $basename in
+    case $base_name_type in
         file) 
             base_name="${file_name%%.*}" 
             ;;
@@ -558,7 +558,7 @@ while getopts :D: opt; do
         notrash) auto_del=false ;;
         pwd=*) epassword="${OPTARG//pwd=/}" ;;
         onlypic) only_extrac_pic=true ;;
-        basename=*) basename="${OPTARG//basename=/}"
+        basename=*) base_name_type="${OPTARG//basename=/}"
     esac
 done
 
