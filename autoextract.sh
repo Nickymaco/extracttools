@@ -98,7 +98,7 @@ format_extract_name() {
 
     file_ext="${1##*.}"
     file_name="${1%.*}"
-    file_name=$(echo "$file_name" | sed 's/\\M/*/g')
+    file_name=$(echo "$file_name" | sed 's/\\M/*/g;s/ /*/g')
     echo "$file_name.$file_ext"
 }
 
