@@ -526,7 +526,12 @@ main() {
         
         ls -l --block-size=M "$exp_dir"
     else
-        exp_dir=$(check_store "$video_save_dir")
+        if [[ -d "$assing_dir" ]]; then
+            exp_dir=$(check_store "$assing_dir")
+        else
+            exp_dir=$(check_store "$video_save_dir")
+        fi
+        
         exp_dir=$(format_save_dir "$exp_dir")
 
         file_name=$(basename "$file_path")
