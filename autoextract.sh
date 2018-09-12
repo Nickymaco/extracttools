@@ -21,7 +21,7 @@ declare -r image_path_pattern="\\.(jpg|png|jpeg|bmp)$"
 
 init(){
     if [[ ! -d "$config_dir" ]]; then
-        mkdir -p "$HOME/.extract_config"
+        mkdir -p "$config_dir"
     fi
 
     # environment variable
