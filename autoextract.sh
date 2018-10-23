@@ -316,6 +316,7 @@ del_file(){
 
     rm_file="${1%.*}"
     rm_file="${rm_file//part*/part*}.${1##*.}" 
+    rm_file=$(echo "rm_file" | sed "s/(/\\(/g;/)/\\)/g;s/[/\\[/g;s/]/\\]/g;s/ /\\ /g")
 
     msg "Moving to trash, trash-list to review !\\n"
     sandbox "trash-put $rm_file"
