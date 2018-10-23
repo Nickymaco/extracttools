@@ -188,11 +188,11 @@ extract_file() {
     fi 
 
     if [[ "$1" == *'.rar' ]]; then
-        exec_cmd="unrar -or -p\"$2\"$excludes e $1 ${exts_parrtern[*]} \"$4\""
+        exec_cmd="unrar -or -p\"$2\"$excludes e \"$1\" ${exts_parrtern[*]} \"$4\""
     elif [[ "$1" == *'.zip' ]]; then
-        exec_cmd="unzip -P$2 -Ocp936 -j $1 ${exts_parrtern[*]} $excludes  -d \"$4\""
+        exec_cmd="unzip -P$2 -Ocp936 -j \"$1\" ${exts_parrtern[*]} $excludes  -d \"$4\""
     elif [[ "$1" == *'.7z' ]]; then
-        exec_cmd="7za -p\"$2\" -o\"$4\"$excludes e $1 ${exts_parrtern[*]} -sccUTF-8 -aot -r"
+        exec_cmd="7za -p\"$2\" -o\"$4\"$excludes e \"$1\" ${exts_parrtern[*]} -sccUTF-8 -aot -r"
     else
         echo 'unkonw file'
         return 1;
@@ -251,11 +251,11 @@ extract_list() {
     fi 
     
     if [[ "$1" == *'.rar' ]]; then
-        exec_cmd="unrar -p\"$2\"$excludes lb $1 $videoext $imgext"
+        exec_cmd="unrar -p\"$2\"$excludes lb \"$1\" $videoext $imgext"
     elif [[ "$1" == *'.zip' ]]; then
-        exec_cmd="unzip -P$2 -Ocp936 -l $1 $videoext $imgext $excludes | sed -n '4,/---------/p' | while read -r _ _ _ c4; do echo \$c4; done"
+        exec_cmd="unzip -P$2 -Ocp936 -l \"$1\" $videoext $imgext $excludes | sed -n '4,/---------/p' | while read -r _ _ _ c4; do echo \$c4; done"
     elif [[ "$1" == *'.7z' ]]; then
-        exec_cmd="7za -slt -p\"$2\"$excludes l $1 $videoext $imgext -r -sccUTF-8 | sed -n 's/Path = //gp'"
+        exec_cmd="7za -slt -p\"$2\"$excludes l \"$1\" $videoext $imgext -r -sccUTF-8 | sed -n 's/Path = //gp'"
     else
         echo 'unkonw file'
         return 1; 
