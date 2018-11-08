@@ -212,7 +212,7 @@ extract_test() {
         file_name=$(eval "unrar -p$2 lb $1 ${video_exts[*]} ${image_exts[*]} | head -n 1")
         file_name=$(format_extract_name "$file_name")
         timeout -s9 0.5 unrar -p"$2" p "$1" "*$file_name" > /dev/null
-    elif [[ "$1" == *'.7z' || "$1" == *'.zip' ]]; then
+    elif [[ "$1" == *'.7z' ]]; then
         file_name=$(eval "7za -p$2 l $1 ${video_exts[*]} ${image_exts[*]} -r -slt -sscUTF-8 | sed -n '20{s/Path = //p}'")
         file_name=$(format_extract_name "$file_name")
         timeout -s9 0.5 7za -p"$2" t "$1" "$file_name" -r > /dev/null
