@@ -217,7 +217,7 @@ extract_test() {
         file_name=$(format_extract_name "$file_name")
         timeout -s9 0.5 7za -p"$2" t "$1" "$file_name" -r > /dev/null
     elif [[ "$1" == *'.zip' ]]; then
-        file_name=$(eval "unzip -P$2 -Ocp936 -l $1 ${video_exts[*]} ${image_exts[*]} 2>&1 | sed -n '/^--/,/--$/p' | while read c1 c2 c3 c4; do echo '\$c4'; done")
+        file_name=$(eval "unzip -P$2 -Ocp936 -l $1 ${video_exts[*]} ${image_exts[*]} 2>&1 | sed -n '/^--/,/--$/p' | sed '/----/d' | awk '{print \$1}'")
         file_name=$(format_extract_name "$file_name")
         timeout -s9 0.5 unzip -Ocp936 -P"$2" -t "$1" "$file_name" > /dev/null
     else
