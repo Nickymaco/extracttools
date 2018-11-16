@@ -8,6 +8,7 @@ declare auto_del=true
 declare epassword
 declare only_extrac_pic=false
 declare base_name_type
+declare no_check=false
 
 declare -r list_content="/tmp/content.txt"
 declare -r config_dir="$HOME/.extract_config"
@@ -207,6 +208,10 @@ extract_file() {
 extract_test() {
     local code
     local file_name
+
+    if [[ $no_check == true ]]; then
+        return 0
+    fi
 
     if [[ "$1" == *'.rar' ]]; then
         file_name=$(eval "unrar -p$2 lb $1 ${video_exts[*]} ${image_exts[*]} | head -n 1")
@@ -568,7 +573,8 @@ while getopts :D: opt; do
         notrash) auto_del=false ;;
         pwd=*) epassword="${OPTARG//pwd=/}" ;;
         onlypic) only_extrac_pic=true ;;
-        basename=*) base_name_type="${OPTARG//basename=/}"
+        basename=*) base_name_type="${OPTARG//basename=/}" ;;
+        nocheck) no_check=true
     esac
 done
 
