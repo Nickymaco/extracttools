@@ -184,7 +184,7 @@ extract_file() {
         if [[ "$1" == *'.zip' ]]; then
             excludes=" -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")
         elif [[ "$1" == *'.rar' ]]; then
-            excludes=" -x\"$exclude_file\""
+            excludes=" -x@\"$exclude_file\""
         elif [[ "$1" == *'.7z' ]]; then
             excludes=" -x@\"$exclude_file\""
         fi
