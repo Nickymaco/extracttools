@@ -180,7 +180,7 @@ extract_file() {
     local excludes
     local exec_cmd
 
-    if [[ -f exclude_file ]]; then
+    if [[ -f $exclude_file ]]; then
         if [[ "$1" == *'.zip' ]]; then
             excludes=" -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")
         elif [[ "$1" == *'.rar' ]]; then
