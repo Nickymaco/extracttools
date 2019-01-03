@@ -576,7 +576,8 @@ while getopts :D: opt; do
         pwd=*) epassword="${OPTARG//pwd=/}" ;;
         onlypic) only_extrac_pic=true ;;
         basename=*) base_name_type="${OPTARG//basename=/}" ;;
-        nocheck) no_check=true
+        nocheck) no_check=true ;;
+        debug) set -x ;;
     esac
 done
 
