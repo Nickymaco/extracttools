@@ -8,6 +8,7 @@ declare auto_del=true
 declare epassword
 declare only_extrac_pic=false
 declare base_name_type
+declare no_check=false
 
 declare -r list_content="/tmp/content.txt"
 declare -r config_dir="$HOME/.extract_config"
@@ -98,7 +99,7 @@ format_extract_name() {
 
     file_ext="${1##*.}"
     file_name="${1%.*}"
-    file_name=$(echo "$file_name" | sed 's/\\M/*/g;s/ /*/g')
+    file_name=$(echo "$file_name" | sed 's/\\M/*/g;s/ /*/g;s/(/*/g;s/)/*/g')
     echo "$file_name.$file_ext"
 }
 
@@ -179,20 +180,22 @@ extract_file() {
     local excludes
     local exec_cmd
 
-    if [[ -f exclude_file ]]; then
+    if [[ -f $exclude_file ]]; then
         if [[ "$1" == *'.zip' ]]; then
             excludes=" -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")
-        elif [[ "$1" == *'.rar' || "$1" == *'.7z' ]]; then
+        elif [[ "$1" == *'.rar' ]]; then
+            excludes=" -x@\"$exclude_file\""
+        elif [[ "$1" == *'.7z' ]]; then
             excludes=" -x@\"$exclude_file\""
         fi
     fi 
 
     if [[ "$1" == *'.rar' ]]; then
-        exec_cmd="unrar -or -p\"$2\"$excludes e $1 ${exts_parrtern[*]} \"$4\""
+        exec_cmd="unrar -or -p\"$2\"$excludes e \"$1\" ${exts_parrtern[*]} \"$4\""
     elif [[ "$1" == *'.zip' ]]; then
-        exec_cmd="unzip -P$2 -Ocp936 -j $1 ${exts_parrtern[*]} $excludes  -d \"$4\""
+        exec_cmd="unzip -P$2 -Ocp936 -j \"$1\" ${exts_parrtern[*]} $excludes  -d \"$4\""
     elif [[ "$1" == *'.7z' ]]; then
-        exec_cmd="7za -p\"$2\" -o\"$4\"$excludes e $1 ${exts_parrtern[*]} -sccUTF-8 -aot -r"
+        exec_cmd="7za -p\"$2\" -o\"$4\"$excludes e \"$1\" ${exts_parrtern[*]} -sccUTF-8 -aot -r"
     else
         echo 'unkonw file'
         return 1;
@@ -208,14 +211,22 @@ extract_test() {
     local code
     local file_name
 
+    if [[ $no_check == true ]]; then
+        return 0
+    fi
+
     if [[ "$1" == *'.rar' ]]; then
         file_name=$(eval "unrar -p$2 lb $1 ${video_exts[*]} ${image_exts[*]} | head -n 1")
         file_name=$(format_extract_name "$file_name")
         timeout -s9 0.5 unrar -p"$2" p "$1" "*$file_name" > /dev/null
-    elif [[ "$1" == *'.7z' || "$1" == *'.zip' ]]; then
+    elif [[ "$1" == *'.7z' ]]; then
         file_name=$(eval "7za -p$2 l $1 ${video_exts[*]} ${image_exts[*]} -r -slt -sscUTF-8 | sed -n '20{s/Path = //p}'")
         file_name=$(format_extract_name "$file_name")
         timeout -s9 0.5 7za -p"$2" t "$1" "$file_name" -r > /dev/null
+    elif [[ "$1" == *'.zip' ]]; then
+        file_name=$(eval "unzip -P$2 -Ocp936 -l $1 ${video_exts[*]} ${image_exts[*]} 2>&1 | sed -n '/^--/,/--$/p' | sed  -n '2p' | while read c1 c2 c3 c4; do echo \$c4; done")
+        file_name=$(format_extract_name "$file_name")
+        timeout -s9 0.5 unzip -Ocp936 -P"$2" -t "$1" "$file_name" > /dev/null
     else
         return 1; 
     fi
@@ -251,11 +262,11 @@ extract_list() {
     fi 
     
     if [[ "$1" == *'.rar' ]]; then
-        exec_cmd="unrar -p\"$2\"$excludes lb $1 $videoext $imgext"
+        exec_cmd="unrar -p\"$2\"$excludes lb \"$1\" $videoext $imgext"
     elif [[ "$1" == *'.zip' ]]; then
-        exec_cmd="unzip -P$2 -Ocp936 -l $1 $videoext $imgext $excludes | sed -n '4,/---------/p' | while read -r _ _ _ c4; do echo \$c4; done"
+        exec_cmd="unzip -P$2 -Ocp936 -l \"$1\" $videoext $imgext $excludes | sed -n '4,/---------/p' | while read -r _ _ _ c4; do echo \$c4; done"
     elif [[ "$1" == *'.7z' ]]; then
-        exec_cmd="7za -slt -p\"$2\"$excludes l $1 $videoext $imgext -r -sccUTF-8 | sed -n 's/Path = //gp'"
+        exec_cmd="7za -slt -p\"$2\"$excludes l \"$1\" $videoext $imgext -r -sccUTF-8 | sed -n 's/Path = //gp'"
     else
         echo 'unkonw file'
         return 1; 
@@ -316,6 +327,7 @@ del_file(){
 
     rm_file="${1%.*}"
     rm_file="${rm_file//part*/part*}.${1##*.}" 
+    rm_file=$(echo "$rm_file" | sed -E "s/\\(|\\)|\\[|\\]|\\s/*/g")
 
     msg "Moving to trash, trash-list to review !\\n"
     sandbox "trash-put $rm_file"
@@ -563,7 +575,9 @@ while getopts :D: opt; do
         notrash) auto_del=false ;;
         pwd=*) epassword="${OPTARG//pwd=/}" ;;
         onlypic) only_extrac_pic=true ;;
-        basename=*) base_name_type="${OPTARG//basename=/}"
+        basename=*) base_name_type="${OPTARG//basename=/}" ;;
+        nocheck) no_check=true ;;
+        debug) set -x ;;
     esac
 done
 
