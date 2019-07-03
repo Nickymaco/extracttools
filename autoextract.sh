@@ -595,7 +595,7 @@ while getopts :D: opt; do
         basename=*) base_name_type="${OPTARG//basename=/}" ;;
         nocheck) no_check=true ;;
         debug) set -x ;;
-        X=) var_exclude="${OPTARG}"
+        X=*) var_exclude="${OPTARG}"
     esac
 done
 
