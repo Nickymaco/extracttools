@@ -455,15 +455,18 @@ extract_pic(){
 # $1 filter name
 exclude_filter() {
     if [[ ${#var_exclude[*]} -eq 0 ]]; then
-        return 0; 
+        echo 0
+        return 0
     fi
 
     for i in "${var_exclude[@]}"; do
         if [[ "$1" == "$i" ]]; then
-            return 1;
+            echo 1
+            return 0
         fi
     done
 
+    echo 0
     return 0
 }
 
@@ -607,9 +610,7 @@ shift $(( OPTIND - 1 ))
 init # initialize environment
 
 while [[ -n "$1" ]]; do
-    isExclude=$(exclude_filter "${1%%.*}")
-    
-    if [[ $isExclude -eq 0 ]]; then
+    if [[ $(exclude_filter "${1%%.*}") -eq 0 ]]; then
         main "$1"
     fi
 
