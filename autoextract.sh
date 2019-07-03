@@ -612,6 +612,8 @@ init # initialize environment
 while [[ -n "$1" ]]; do
     if [[ $(exclude_filter "${1%%.*}") -eq 0 ]]; then
         main "$1"
+    else
+        echo -e "Exclude file $1"
     fi
 
     shift
