@@ -9,7 +9,7 @@ declare epassword
 declare only_extrac_pic=false
 declare base_name_type
 declare no_check=false
-declare var_exclude
+declare -a var_exclude
 
 declare -r list_content="/tmp/content.txt"
 declare -r config_dir="$HOME/.extract_config"
@@ -454,13 +454,11 @@ extract_pic(){
 }
 
 exclude_filter() {
-    if [[ $var_exclude == "" ]]; then
+    if [[ ${#var_exclude[*]} -eq 0 ]]; then
         return 0; 
     fi
 
-    IFS="," read -r -a arr <<< "$var_exclude"
-
-    for i in "${arr[@]}"; do
+    for i in "${var_exclude[@]}"; do
         if [[ "$1" == "$i" ]]; then
             return 1;
         fi
@@ -595,7 +593,7 @@ while getopts :D: opt; do
         basename=*) base_name_type="${OPTARG//basename=/}" ;;
         nocheck) no_check=true ;;
         debug) set -x ;;
-        X=*) var_exclude="${OPTARG}"
+        X=*) IFS="," read -r -a var_exclude <<< "${OPTARG//X=/}" ;;
     esac
 done
 
@@ -609,7 +607,7 @@ shift $(( OPTIND - 1 ))
 init # initialize environment
 
 while [[ -n "$1" ]]; do
-    if [[ $(exclude_filter "$1") -eq 0 ]]; then
+    if [[ $(exclude_filter "${1%%.*}") -eq 0 ]]; then
         main "$1"
     fi
 
