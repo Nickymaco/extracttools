@@ -452,7 +452,7 @@ extract_pic(){
         del_file "$1"
     fi
 }
-
+# $1 filter name
 exclude_filter() {
     if [[ ${#var_exclude[*]} -eq 0 ]]; then
         return 0; 
@@ -607,7 +607,9 @@ shift $(( OPTIND - 1 ))
 init # initialize environment
 
 while [[ -n "$1" ]]; do
-    if [[ $(exclude_filter "${1%%.*}") -eq 0 ]]; then
+    isExclude=$(exclude_filter "${1%%.*}")
+    
+    if [[ $isExclude -eq 0 ]]; then
         main "$1"
     fi
 
