@@ -330,8 +330,8 @@ del_file(){
     rm_file="${rm_file//part*/part*}.${1##*.}" 
     rm_file=$(echo "$rm_file" | sed -E "s/\\(|\\)|\\[|\\]|\\s/*/g")
 
-    msg "Moving to trash, trash-list to review !\\n"
-    sandbox "trash-put $rm_file"
+    msg "delete file $rm_file \\n"
+    sandbox "cp /dev/null $rm_file && rm -f $rm_file"
 }
 # $1 file path
 # $2 file name
