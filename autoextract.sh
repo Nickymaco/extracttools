@@ -182,11 +182,11 @@ extract_file() {
     local exec_cmd
 
     if [[ -f $exclude_file ]]; then
-        if [[ "$1" == *'.zip' ]]; then
-            excludes=" -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")
-        elif [[ "$1" == *'.rar' ]]; then
+        #if [[ "$1" == *'.zip' ]]; then
+        #    excludes=" -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")
+        if [[ "$1" == *'.rar' ]]; then
             excludes=" -x@\"$exclude_file\""
-        elif [[ "$1" == *'.7z' ]]; then
+        elif [[ "$1" == *'.7z' || "$1" == *'.zip' ]]; then
             excludes=" -x@\"$exclude_file\""
         fi
     fi 
