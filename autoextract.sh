@@ -337,7 +337,11 @@ del_file(){
     fi
 
     msg "delete file $rm_file \\n"
-    sandbox "cp /dev/null $rm_file && rm -f $rm_file"
+
+    for i in $rm_file
+    do
+        sandbox "cp /dev/null $i && rm -f $i"
+    done
 }
 # $1 file path
 # $2 file name
