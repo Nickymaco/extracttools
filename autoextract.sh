@@ -321,7 +321,7 @@ get_pwd() {
 # $1 file_name
 del_file(){
     if [[ $auto_del == false ]]; then
-        return 0;
+        return 0
     fi
 
     local rm_file
@@ -329,6 +329,12 @@ del_file(){
     rm_file="${1%.*}"
     rm_file="${rm_file//part*/part*}.${1##*.}" 
     rm_file=$(echo "$rm_file" | sed -E "s/\\(|\\)|\\[|\\]|\\s/*/g")
+
+    read -r -p "confirm delete file: $rm_file ? [y]es" confirm
+
+    if [[ "$confirm" != "y" && "$confirm" != "yes" ]]; then
+      return 0
+    fi
 
     msg "delete file $rm_file \\n"
     sandbox "cp /dev/null $rm_file && rm -f $rm_file"
