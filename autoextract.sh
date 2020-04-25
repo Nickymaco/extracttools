@@ -265,7 +265,7 @@ extract_list() {
     if [[ "$1" == *'.rar' ]]; then
         exec_cmd="unrar -p\"$2\"$excludes lb \"$1\" $videoext $imgext"
     elif [[ "$1" == *'.zip' ]]; then
-        exec_cmd="unzip -P$2 -Ocp936 -l \"$1\" $videoext $imgext $excludes | sed -n '4,/---------/p' | while read -r _ _ _ c4; do echo \$c4; done"
+        exec_cmd="unzip -P$2 -Ocp936 -l \"$1\" $videoext $imgext $excludes | sed -n \"/---------/,\$p\" | sed \"/---------/d;\$d\" | while read -r _ _ _ c4; do echo \$c4; done"
     elif [[ "$1" == *'.7z' ]]; then
         exec_cmd="7za -slt -p\"$2\"$excludes l \"$1\" $videoext $imgext -r -sccUTF-8 | sed -n 's/Path = //gp'"
     else
