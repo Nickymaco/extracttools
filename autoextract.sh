@@ -8,7 +8,6 @@ declare auto_del=true
 declare epassword
 declare only_extrac_pic=false
 declare base_name_type
-declare no_check=false
 declare -a var_exclude
 
 declare -r list_content="/tmp/content.txt"
