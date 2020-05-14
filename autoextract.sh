@@ -46,10 +46,6 @@ init(){
                     image_save_dir="${line//image_store=/}"
                     declare -r image_save_dir
                     ;;
-                password_file=*) 
-                    password_file="${line//password_file=/}" 
-                    declare -r password_file
-                    ;;
             esac
         done < "$config_file"
     fi
@@ -208,41 +204,6 @@ extract_file() {
 
 # $1 file_name
 # $2 password
-extract_test() {
-    local code
-    local file_name
-
-    if [[ $no_check == true ]]; then
-        return 0
-    fi
-
-    if [[ "$1" == *'.rar' ]]; then
-        file_name=$(eval "unrar -p$2 lb $1 ${video_exts[*]} ${image_exts[*]} | head -n 1")
-        file_name=$(format_extract_name "$file_name")
-        timeout -s9 0.5 unrar -p"$2" p "$1" "*$file_name" > /dev/null
-    elif [[ "$1" == *'.7z' ]]; then
-        file_name=$(eval "7za -p$2 l $1 ${video_exts[*]} ${image_exts[*]} -r -slt -sscUTF-8 | sed -n '20{s/Path = //p}'")
-        file_name=$(format_extract_name "$file_name")
-        timeout -s9 0.5 7za -p"$2" t "$1" "$file_name" -r > /dev/null
-    elif [[ "$1" == *'.zip' ]]; then
-        file_name=$(eval "unzip -P$2 -Ocp936 -l $1 ${video_exts[*]} ${image_exts[*]} 2>&1 | sed -n '/^--/,/--$/p' | sed  -n '2p' | while read c1 c2 c3 c4; do echo \$c4; done")
-        file_name=$(format_extract_name "$file_name")
-        timeout -s9 0.5 unzip -Ocp936 -P"$2" -t "$1" "$file_name" > /dev/null
-    else
-        return 1; 
-    fi
-
-    code=$?
-
-    # 137 -> the timeout signal
-    if [[ $code -eq 137 || "$code" == '' ]]; then
-        return 0
-    else
-        return "$code"
-    fi
-}
-# $1 file_name
-# $2 password
 extract_list() {
     local exec_cmd
     local excludes
@@ -279,43 +240,11 @@ extract_list() {
 get_pwd() {
     if [[ $epassword != '' ]]; then
         echo "$epassword"
-        return 0
-    fi
-
-    local arr_password
-    local arr_length
-    local password
-
-    if [[ "$target" != "" && -f "$password_file" ]]; then
-        # the key is uniq
-        password=$(sed -n "s/^$target=//gp" "$password_file" | head -n 1)
-    fi
-
-    if [[ "$password" != "" ]]; then
-        read -r -a arr_password <<< "$password"
     else
-        arr_password=()
+        echo "";
     fi
-
-    arr_length=${#arr_password[@]}
-
-    if [[ $arr_length -eq 0 ]]; then
-        read -er -p "give a password:" -s new_password
-        echo "$new_password"
-    elif [[ $arr_length -eq 1 ]]; then
-        echo "${arr_password[0]}"
-    else
-        for ((i=0; i<arr_length; i++)); do
-            code=$(extract_test "$1" "${arr_password[i]}" && echo $?)
-
-            if [[ $code -eq  0 ]]; then
-                echo "${arr_password[i]}"
-                return 0;
-            fi
-        done
-        return 1
-    fi
-    return 0
+    
+    return 0;
 }
 
 # $1 file_name
@@ -529,7 +458,6 @@ main() {
     base_name=$(get_basename "$file_path" "$1")
 
     local exp_dir
-    local code
     local file_name
     local extract_pattern
     local ext
@@ -605,7 +533,6 @@ while getopts :D: opt; do
         pwd=*) epassword="${OPTARG//pwd=/}" ;;
         onlypic) only_extrac_pic=true ;;
         basename=*) base_name_type="${OPTARG//basename=/}" ;;
-        nocheck) no_check=true ;;
         debug) set -x ;;
         X=*) IFS="," read -r -a var_exclude <<< "${OPTARG//X=/}" ;;
     esac
