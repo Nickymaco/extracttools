@@ -505,7 +505,8 @@ main() {
         file_name=$(basename "$file_path")
         extract_pattern="*"$(format_extract_name "$file_name")
         ext=$(echo "${file_name##*.}" | tr '[:upper:]' '[:lower:]')
-        new_file_name="$(echo "$base_name" | sed "s/\\W//g").$ext"
+        # shellcheck disable=SC2001
+        new_file_name="$(echo "$base_name" | sed -e "s@\\W@@g").$ext"
         
         extract_file "$1" "$pwd" "$extract_pattern" "$exp_dir"
 
