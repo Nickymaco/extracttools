@@ -8,9 +8,9 @@ declare auto_del=true
 declare epassword
 declare only_extrac_pic=false
 declare base_name_type
+declare list_content
 declare -a var_exclude
 
-declare -r list_content="/tmp/content.txt"
 declare -r config_dir="$HOME/.extract_config"
 declare -r config_file="$config_dir/extract.config"
 
@@ -533,6 +533,7 @@ while getopts :D: opt; do
         onlypic) only_extrac_pic=true ;;
         basename=*) base_name_type="${OPTARG//basename=/}" ;;
         debug) set -x ;;
+        content=*) list_content="${OPTARG//content=/}" ;;
         X=*) IFS="," read -r -a var_exclude <<< "${OPTARG//X=/}" ;;
     esac
 done
@@ -548,7 +549,16 @@ init # initialize environment
 
 while [[ -n "$1" ]]; do
     if [[ $(exclude_filter "${1%%.*}") -eq 0 ]]; then
+        # create content file when it no special
+        if [[ ! -f "$list_content" ]]; then
+            list_content="/tmp/$(date +%s%N).ea"
+        fi
+        # start
         main "$1"
+        # delete tmp content file
+        if [[ -f "$list_content" ]]; then
+          rm -f "$list_content"
+        fi
     else
         echo -e "Exclude file $1"
     fi
