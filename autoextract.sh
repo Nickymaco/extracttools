@@ -511,7 +511,7 @@ main() {
         extract_file "$1" "$pwd" "$extract_pattern" "$exp_dir"
 
         if [[ "$file_name" != "$new_file_name" ]]; then
-            mv "${exp_dir//\\/}/${file_name}" "${exp_dir//\\/}/$new_file_name"
+            mv "${exp_dir//\\/}/${file_name// /\\ }" "${exp_dir//\\/}/$new_file_name"
         fi
 
         msg --prompt "\\n$(file "$exp_dir/$new_file_name")"
