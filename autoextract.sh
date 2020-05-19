@@ -167,6 +167,23 @@ check_store(){
     echo "$cur_dir"
 }
 
+get_file_type() {
+    local file_type_str
+
+    file_type_str=$(file "$1")
+
+     if [[ $(echo "$file_type_str" | grep -c -i "rar") -gt 0  ]]; then
+        echo "rar"
+    elif [[ $(echo "$file_type_str" | grep -c -i "zip") -gt 0  ]]; then
+        echo "zip"
+    elif [[ $(echo "$file_type_str" | grep -c -i "7z") -gt 0 ]]; then
+        echo "7z"
+    else
+        echo 'unkonw file'
+        exit 1
+    fi
+}
+
 # $1 file_name
 # $2 password
 # $3 partten
@@ -175,22 +192,25 @@ extract_file() {
     local exts_parrtern=( "$3" )
     local excludes
     local exec_cmd
+    local file_type
+
+    file_type=$(get_file_type "$1")
 
     if [[ -f $exclude_file ]]; then
-        if [[ "$1" == *'.zip' ]]; then
+        if [[ "$file_type" == "zip" ]]; then
            excludes=" -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")
-        elif [[ "$1" == *'.rar' ]]; then
+        elif [[ "$file_type" == 'rar' ]]; then
             excludes=" -x@\"$exclude_file\""
-        elif [[ "$1" == *'.7z' ]]; then
+        elif [[ "$file_type" == '7z' ]]; then
             excludes=" -x@\"$exclude_file\""
         fi
     fi 
 
-    if [[ "$1" == *'.rar' ]]; then
+    if [[ "$file_type" == 'rar' ]]; then
         exec_cmd="unrar -or -p\"$2\"$excludes e \"$1\" ${exts_parrtern[*]} \"$4\""
-    elif [[ "$1" == *'.zip' ]]; then
+    elif [[ "$file_type" == "zip" ]]; then
        exec_cmd="unzip -P$2 -Ocp936 -j \"$1\" ${exts_parrtern[*]} $excludes  -d \"$4\""
-    elif [[ "$1" == *'.7z' ]]; then
+    elif [[ "$file_type" == '7z' ]]; then
         exec_cmd="7za -p\"$2\" -o\"$4\"$excludes e \"$1\" ${exts_parrtern[*]} -sccUTF-8 -aot -r"
     else
         echo 'unkonw file'
@@ -208,29 +228,32 @@ extract_list() {
     local excludes
     local videoext
     local imgext
+    local file_type
 
     videoext="${video_exts[*]}"
     videoext="${videoext//\*/\\*}"
     imgext="${image_exts[*]}"
     imgext="${imgext//\*/\\*}"
 
+    file_type=$(get_file_type "$1")
+
     if [[ -f "$exclude_file" ]]; then
-        if [[ "$1" == *'.zip' ]]; then
+        if [[ "$file_type" == "zip" ]]; then
             excludes=" -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")
-        elif [[ "$1" == *'.rar' || "$1" == *'.7z' ]]; then
+        elif [[ "$file_type" == 'rar' || "$file_type" == '7z' ]]; then
             excludes=" -x@\"$exclude_file\""
         fi
     fi 
     
-    if [[ "$1" == *'.rar' ]]; then
+    if [[ "$file_type" == 'rar' ]]; then
         exec_cmd="unrar -p\"$2\"$excludes lb \"$1\" $videoext $imgext"
-    elif [[ "$1" == *'.zip' ]]; then
+    elif [[ "$file_type" == "zip" ]]; then
         exec_cmd="unzip -P$2 -Ocp936 -l \"$1\" $videoext $imgext $excludes | sed -n \"/---------/,\\\$p\" | sed \"/---------/d;\\\$d\" | while read -r _ _ _ c4; do echo \"\$c4\"; done"
-    elif [[ "$1" == *'.7z' ]]; then
+    elif [[ "$file_type" == '7z' ]]; then
         exec_cmd="7za -slt -p\"$2\"$excludes l \"$1\" $videoext $imgext -r -sccUTF-8 | sed -n 's/Path = //gp'"
     else
         echo 'unkonw file'
-        return 1; 
+        exit 1; 
     fi
     sandbox "$exec_cmd > $list_content"
     return $?
