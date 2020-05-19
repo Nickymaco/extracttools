@@ -2,7 +2,6 @@
 set -e
 
 # execute arguments
-declare target
 declare assing_dir
 declare auto_del=true
 declare epassword
@@ -442,17 +441,17 @@ exclude_filter() {
 
 help_print() {
     local message
-    message="Usage: $(basename "$0") [-Doptions[=args]] <archive files...>
+    message="Usage: $(basename "$0") [options] <archive files...>
 
 <options>
-    tag         What you defined in you config.
-    output      The file saved dir.
-    pwd         The extract password.
-    onlypic     None arguments. Only extract images from the file.
-    basename    [tree] rename from path | [file] rename from archive filename | default done nothings.
-    debug       None arguments. debug shell execute.
-    content     Path of listed content saved file.
-    X           None arguments. IFS setting."
+    c      Path of listed content saved file.
+    d      None arguments. debug shell execute.
+    i      None arguments. Only extract images from the file.
+    n      [tree] rename from path | [file] rename from archive filename | default done nothings.
+    o      The file saved dir.
+    p      The extract password.
+    u      dont auto trash file
+    X      The exclude file path that content whith comma split"
     echo "$message" >&2
 }
 
@@ -575,34 +574,23 @@ if [[ "$#" -eq 0 ]]; then
     exit 0
 fi
 
-while getopts :hD: opt; do
-    if [[ "$opt" != "D" && "$opt" != "h" ]]; then
-        continue
-    fi
-
-    if [[ "$opt" == "h" ]]; then
-        help_print
-        exit 0
-    fi
-
-    # shellcheck disable=SC2214
-    case $OPTARG in
-        tag=*) target="${OPTARG//tag=/}" ;;
-        output=*) assing_dir="${OPTARG//output=/}" ;;
-        notrash) auto_del=false ;;
-        pwd=*) epassword="${OPTARG//pwd=/}" ;;
-        onlypic) only_extrac_pic=true ;;
-        basename=*) base_name_type="${OPTARG//basename=/}" ;;
-        debug) set -x ;;
-        content=*) list_content="${OPTARG//content=/}" ;;
-        X=*) IFS="," read -r -a var_exclude <<< "${OPTARG//X=/}" ;;
+while getopts :hdiuc:n:o:p:t:X opt; do
+    case $opt in
+        h) 
+          help_print
+          exit 0 
+          ;;
+        d) set -x ;; #debug
+        u) auto_del=false ;; #notrash
+        c) list_content="$OPTARG" ;; #content
+        n) base_name_type="$OPTARG" ;; #basename
+        o) assing_dir="$OPTARG" ;; #output
+        p) epassword="$OPTARG" ;;
+        X) IFS="," read -r -a var_exclude <<< "${OPTARG}" ;;
+        i) only_extrac_pic=true ;; #piconly
+        *) ;;
     esac
 done
-
-if [[ "$epassword" == '' && "$target" == '' ]]; then
-    msg --error "Please set the target or give a password ! \\n"
-    exit 1
-fi
 
 shift $(( OPTIND - 1 ))
 
