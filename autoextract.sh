@@ -218,6 +218,8 @@ extract_file() {
     fi
     
     sandbox "$exec_cmd"
+
+    echo "$?"
     return $?
 }
 
@@ -438,6 +440,22 @@ exclude_filter() {
     return 0
 }
 
+help_print() {
+    local message
+    message="Usage: $(basename "$0") [-Doptions[=args]] <archive files...>
+
+<options>
+    tag         What you defined in you config.
+    output      The file saved dir.
+    pwd         The extract password.
+    onlypic     None arguments. Only extract images from the file.
+    basename    [tree] rename from path | [file] rename from archive filename | default done nothings.
+    debug       None arguments. debug shell execute.
+    content     Path of listed content saved file.
+    X           None arguments. IFS setting."
+    echo "$message" >&2
+}
+
 # $1 file name
 main() {
     if [[ ! -f "$1" ]]; then
@@ -552,9 +570,14 @@ main() {
     fi
 }
 
-while getopts :D: opt; do
-    if [[ "$opt" != "D" ]]; then
+while getopts :hD: opt; do
+    if [[ "$opt" != "D" && "$opt" != "h" ]]; then
         continue
+    fi
+
+    if [[ "$opt" == "h" ]]; then
+        help_print
+        exit 0
     fi
 
     # shellcheck disable=SC2214
