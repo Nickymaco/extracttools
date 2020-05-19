@@ -403,12 +403,18 @@ extract_pic(){
         save_path=$(format_save_dir "$save_path")
         check_dir "$save_path"
 
+        local code;
+
         if [[ "$parttern" != "" ]]; then
-            extract_file "$1" "$2" "$parttern" "$save_path" 
+            code=$(extract_file "$1" "$2" "$parttern" "$save_path") 
         else
-            extract_file "$1" "$2" "${image_exts[*]}" "$save_path" 
+            code=$(extract_file "$1" "$2" "${image_exts[*]}" "$save_path")
         fi
-        del_file "$1"
+
+        if [[ code -eq 0 ]]; then
+            del_file "$1"
+        fi
+        
     else
         msg --prompt "there are no more pictures ! \\n"
         del_file "$1"
@@ -484,6 +490,7 @@ main() {
     local extract_pattern
     local ext
     local new_file_name
+    local code;
 
     if [[ $count -gt 1 ]]; then
         if [[ -d "$assing_dir" ]]; then
@@ -513,7 +520,7 @@ main() {
         esac
 
         exp_dir=$(format_save_dir "$exp_dir")
-        extract_file "$1" "$pwd" "${video_exts[*]}" "$exp_dir"
+        code=$(extract_file "$1" "$pwd" "${video_exts[*]}" "$exp_dir")
         
         ls -l --block-size=M "$exp_dir"
     else
@@ -531,7 +538,7 @@ main() {
         # shellcheck disable=SC2001
         new_file_name="$(echo "$base_name" | sed -e "s@\\W@@g").$ext"
         
-        extract_file "$1" "$pwd" "$extract_pattern" "$exp_dir"
+        code=$(extract_file "$1" "$pwd" "$extract_pattern" "$exp_dir")
 
         if [[ "$file_name" != "$new_file_name" ]]; then
             mv "${exp_dir//\\/}/${file_name}" "${exp_dir//\\/}/$new_file_name"
@@ -540,7 +547,9 @@ main() {
         msg --prompt "\\n$(file "$exp_dir/$new_file_name")"
     fi
 
-    extract_pic "$1" "$pwd"
+    if [[ $code -eq 0 ]]; then
+        extract_pic "$1" "$pwd"
+    fi
 }
 
 while getopts :D: opt; do
