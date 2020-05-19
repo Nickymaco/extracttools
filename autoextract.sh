@@ -183,34 +183,39 @@ get_file_type() {
 # $4 dir
 extract_file() {
     local exts_parrtern=( "$3" )
-    local excludes
     local file_type
 
     file_type=$(get_file_type "$1")
 
     if [[ -f $exclude_file ]]; then
-        if [[ "$file_type" == "zip" ]]; then
-           excludes=" -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")
-        elif [[ "$file_type" == 'rar' ]]; then
-            excludes=" -x@\"$exclude_file\""
+        if [[ "$file_type" == 'rar' ]]; then
+            # shellcheck disable=SC2086
+            unrar -or -p"$2" -x@"$exclude_file" e "$1" ${exts_parrtern[*]} "$4"
+        elif [[ "$file_type" == "zip" ]]; then
+            # shellcheck disable=SC2086
+            unzip -P"$2" -Ocp936 -j "$1" ${exts_parrtern[*]} -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")" -d "$4"
         elif [[ "$file_type" == '7z' ]]; then
-            excludes=" -x@\"$exclude_file\""
+            # shellcheck disable=SC2086
+            7za -p"$2" -o"$4" -x@"$exclude_file" e "$1" ${exts_parrtern[*]} -sccUTF-8 -aot -r
+        else
+            echo '1'
+            return 1;
+        fi
+    else
+        if [[ "$file_type" == 'rar' ]]; then
+            # shellcheck disable=SC2086
+            unrar -or -p"$2" e "$1" ${exts_parrtern[*]} "$4"
+        elif [[ "$file_type" == "zip" ]]; then
+            # shellcheck disable=SC2086
+            unzip -P"$2" -Ocp936 -j "$1" ${exts_parrtern[*]} -d "$4"
+        elif [[ "$file_type" == '7z' ]]; then
+            # shellcheck disable=SC2086
+            7za -p"$2" -o"$4" e "$1" ${exts_parrtern[*]} -sccUTF-8 -aot -r
+        else
+            echo '1'
+            return 1;
         fi
     fi 
-
-    if [[ "$file_type" == 'rar' ]]; then
-        # shellcheck disable=SC2086
-        unrar -or -p"$2$excludes" e "$1" ${exts_parrtern[*]} "$4"
-    elif [[ "$file_type" == "zip" ]]; then
-       # shellcheck disable=SC2086
-       unzip -P"$2" -Ocp936 -j "$1" ${exts_parrtern[*]} "$excludes" -d "$4"
-    elif [[ "$file_type" == '7z' ]]; then
-        # shellcheck disable=SC2086
-        7za -p"$2" -o"$4$excludes" e "$1" ${exts_parrtern[*]} -sccUTF-8 -aot -r
-    else
-        echo '1'
-        return 1;
-    fi
 
     echo "$?"
     return $?
@@ -219,28 +224,19 @@ extract_file() {
 # $1 file_name
 # $2 password
 extract_list() {
-    local excludes
     local file_type
 
-    file_type=$(get_file_type "$1")
-
-    if [[ -f "$exclude_file" ]]; then
-        if [[ "$file_type" == "zip" ]]; then
-            excludes=" -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")
-        elif [[ "$file_type" == 'rar' || "$file_type" == '7z' ]]; then
-            excludes=" -x@\"$exclude_file\""
-        fi
-    fi 
+    file_type=$(get_file_type "$1") 
     
     if [[ "$file_type" == 'rar' ]]; then
         # shellcheck disable=SC2086
-        unrar -p"$2$excludes" lb "$1" ${video_exts[*]} ${image_exts[*]} > "$list_content"
+        unrar -p"$2" lb "$1" ${video_exts[*]} ${image_exts[*]} > "$list_content"
     elif [[ "$file_type" == "zip" ]]; then
         # shellcheck disable=SC2086
-        unzip -P"$2" -Ocp936 -l "$1" ${video_exts[*]} ${image_exts[*]} "$excludes" | sed -n "/---------/,\$p" | sed "/---------/d;\$d" | while read -r _ _ _ c4; do echo "$c4"; done > "$list_content"
+        unzip -P"$2" -Ocp936 -l "$1" ${video_exts[*]} ${image_exts[*]} | sed -n "/---------/,\$p" | sed "/---------/d;\$d" | while read -r _ _ _ c4; do echo "$c4"; done > "$list_content"
     elif [[ "$file_type" == '7z' ]]; then
         # shellcheck disable=SC2086
-        7za -slt -p"$2$excludes" l "$1" ${video_exts[*]} ${image_exts[*]} -r -sccUTF-8 | sed -n 's/Path = //gp' > "$list_content"
+        7za -slt -p"$2" l "$1" ${video_exts[*]} ${image_exts[*]} -r -sccUTF-8 | sed -n 's/Path = //gp' > "$list_content"
     else
         echo 'unkonw file'
         exit 1; 
