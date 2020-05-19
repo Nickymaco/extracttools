@@ -570,6 +570,11 @@ main() {
     fi
 }
 
+if [[ "$#" -eq 0 ]]; then
+    help_print
+    exit 0
+fi
+
 while getopts :hD: opt; do
     if [[ "$opt" != "D" && "$opt" != "h" ]]; then
         continue
