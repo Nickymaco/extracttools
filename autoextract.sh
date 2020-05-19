@@ -199,11 +199,14 @@ extract_file() {
     fi 
 
     if [[ "$file_type" == 'rar' ]]; then
-        unrar -or -p"$2$excludes" e "$1" "${exts_parrtern[*]}" "$4"
+        # shellcheck disable=SC2086
+        unrar -or -p"$2$excludes" e "$1" ${exts_parrtern[*]} "$4"
     elif [[ "$file_type" == "zip" ]]; then
-       unzip -P"$2" -Ocp936 -j "$1" "${exts_parrtern[*]}" "$excludes" -d "$4"
+       # shellcheck disable=SC2086
+       unzip -P"$2" -Ocp936 -j "$1" ${exts_parrtern[*]} "$excludes" -d "$4"
     elif [[ "$file_type" == '7z' ]]; then
-        7za -p"$2" -o"$4$excludes" e "$1" "${exts_parrtern[*]}" -sccUTF-8 -aot -r
+        # shellcheck disable=SC2086
+        7za -p"$2" -o"$4$excludes" e "$1" ${exts_parrtern[*]} -sccUTF-8 -aot -r
     else
         echo '1'
         return 1;
