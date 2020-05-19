@@ -74,12 +74,6 @@ msg(){
         *) echo  -e "$1";
     esac
 }
-# $1 the eval command
-sandbox(){
-    set +e
-    eval "$1"
-    set -e
-}
 
 # $1 the file name
 file_info(){
@@ -159,7 +153,7 @@ check_store(){
         cur_dir="$(get_dir)"
     fi
 
-    while [[ $(sandbox "find \"$cur_dir\" -maxdepth 1 -printf %P\\\\n | grep -ic \"^[^\\\\.]\"") -ge $max_count ]]; do
+    while [[ $(find "$cur_dir" -maxdepth 1 -printf %P\\n | grep -ic "^[^.]") -ge $max_count ]]; do
         cur_dir="$(get_dir "The dir is full, please give a new path")"
     done
 
@@ -206,17 +200,15 @@ extract_file() {
     fi 
 
     if [[ "$file_type" == 'rar' ]]; then
-        exec_cmd="unrar -or -p\"$2\"$excludes e \"$1\" ${exts_parrtern[*]} \"$4\""
+        unrar -or -p"$2$excludes" e "$1" "${exts_parrtern[*]}" "$4"
     elif [[ "$file_type" == "zip" ]]; then
-       exec_cmd="unzip -P$2 -Ocp936 -j \"$1\" ${exts_parrtern[*]} $excludes  -d \"$4\""
+       unzip -P"$2" -Ocp936 -j "$1" "${exts_parrtern[*]}" "$excludes" -d "$4"
     elif [[ "$file_type" == '7z' ]]; then
-        exec_cmd="7za -p\"$2\" -o\"$4\"$excludes e \"$1\" ${exts_parrtern[*]} -sccUTF-8 -aot -r"
+        7za -p"$2" -o"$4$excludes" e "$1" "${exts_parrtern[*]}" -sccUTF-8 -aot -r
     else
-        echo 'unkonw file'
+        echo '1'
         return 1;
     fi
-    
-    sandbox "$exec_cmd"
 
     echo "$?"
     return $?
@@ -247,16 +239,16 @@ extract_list() {
     fi 
     
     if [[ "$file_type" == 'rar' ]]; then
-        exec_cmd="unrar -p\"$2\"$excludes lb \"$1\" $videoext $imgext"
+        unrar -p"$2$excludes" lb "$1" "$videoext" "$imgext" > "$list_content"
     elif [[ "$file_type" == "zip" ]]; then
-        exec_cmd="unzip -P$2 -Ocp936 -l \"$1\" $videoext $imgext $excludes | sed -n \"/---------/,\\\$p\" | sed \"/---------/d;\\\$d\" | while read -r _ _ _ c4; do echo \"\$c4\"; done"
+        unzip -P"$2" -Ocp936 -l "$1" "$videoext" "$imgext" "$excludes" | sed -n "/---------/,\$p" | sed "/---------/d;\$d" | while read -r _ _ _ c4; do echo "$c4"; done
     elif [[ "$file_type" == '7z' ]]; then
-        exec_cmd="7za -slt -p\"$2\"$excludes l \"$1\" $videoext $imgext -r -sccUTF-8 | sed -n 's/Path = //gp'"
+        7za -slt -p"$2$excludes" l "$1" "$videoext" "$imgext" -r -sccUTF-8 | sed -n 's/Path = //gp'
     else
         echo 'unkonw file'
         exit 1; 
     fi
-    sandbox "$exec_cmd > $list_content"
+    
     return $?
 }
 
@@ -352,7 +344,7 @@ extract_pic(){
     local parttern
 
     msg "Image checking, pleas wait for a moment !\\n"
-    pic_count=$(sandbox "grep -c -i -E \"$image_path_pattern\" \"$list_content\"")
+    pic_count=$(grep -c -i -E "$image_path_pattern" "$list_content")
 
     if [[ $pic_count -gt 10 ]]; then
         index=1
@@ -478,7 +470,7 @@ main() {
 
     local count
 
-    count=$(sandbox "grep -i -c -E \"$video_path_pattern\" \"$list_content\"")
+    count=$(grep -i -c -E "$video_path_pattern" "$list_content")
 
     if [[ $count -eq 0 || $only_extrac_pic == true ]]; then
         msg --prompt "No media files !\\n"
