@@ -230,11 +230,14 @@ extract_list() {
     fi 
     
     if [[ "$file_type" == 'rar' ]]; then
-        unrar -p"$2$excludes" lb "$1" "${video_exts[*]}" "${image_exts[*]}" > "$list_content"
+        # shellcheck disable=SC2086
+        unrar -p"$2$excludes" lb "$1" ${video_exts[*]} ${image_exts[*]} > "$list_content"
     elif [[ "$file_type" == "zip" ]]; then
-        unzip -P"$2" -Ocp936 -l "$1" "${video_exts[*]}" "${image_exts[*]}" "$excludes" | sed -n "/---------/,\$p" | sed "/---------/d;\$d" | while read -r _ _ _ c4; do echo "$c4"; done > "$list_content"
+        # shellcheck disable=SC2086
+        unzip -P"$2" -Ocp936 -l "$1" ${video_exts[*]} ${image_exts[*]} "$excludes" | sed -n "/---------/,\$p" | sed "/---------/d;\$d" | while read -r _ _ _ c4; do echo "$c4"; done > "$list_content"
     elif [[ "$file_type" == '7z' ]]; then
-        7za -slt -p"$2$excludes" l "$1" "${video_exts[*]}" "${image_exts[*]}" -r -sccUTF-8 | sed -n 's/Path = //gp' > "$list_content"
+        # shellcheck disable=SC2086
+        7za -slt -p"$2$excludes" l "$1" ${video_exts[*]} ${image_exts[*]} -r -sccUTF-8 | sed -n 's/Path = //gp' > "$list_content"
     else
         echo 'unkonw file'
         exit 1; 
