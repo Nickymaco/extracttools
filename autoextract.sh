@@ -184,7 +184,6 @@ get_file_type() {
 extract_file() {
     local exts_parrtern=( "$3" )
     local excludes
-    local exec_cmd
     local file_type
 
     file_type=$(get_file_type "$1")
@@ -218,14 +217,7 @@ extract_file() {
 # $2 password
 extract_list() {
     local excludes
-    local videoext
-    local imgext
     local file_type
-
-    videoext="${video_exts[*]}"
-    videoext="${videoext//\*/\\*}"
-    imgext="${image_exts[*]}"
-    imgext="${imgext//\*/\\*}"
 
     file_type=$(get_file_type "$1")
 
@@ -238,11 +230,11 @@ extract_list() {
     fi 
     
     if [[ "$file_type" == 'rar' ]]; then
-        unrar -p"$2$excludes" lb "$1" "$videoext" "$imgext" > "$list_content"
+        unrar -p"$2$excludes" lb "$1" "${video_exts[*]}" "${image_exts[*]}" > "$list_content"
     elif [[ "$file_type" == "zip" ]]; then
-        unzip -P"$2" -Ocp936 -l "$1" "$videoext" "$imgext" "$excludes" | sed -n "/---------/,\$p" | sed "/---------/d;\$d" | while read -r _ _ _ c4; do echo "$c4"; done > "$list_content"
+        unzip -P"$2" -Ocp936 -l "$1" "${video_exts[*]}" "${image_exts[*]}" "$excludes" | sed -n "/---------/,\$p" | sed "/---------/d;\$d" | while read -r _ _ _ c4; do echo "$c4"; done > "$list_content"
     elif [[ "$file_type" == '7z' ]]; then
-        7za -slt -p"$2$excludes" l "$1" "$videoext" "$imgext" -r -sccUTF-8 | sed -n 's/Path = //gp' > "$list_content"
+        7za -slt -p"$2$excludes" l "$1" "${video_exts[*]}" "${image_exts[*]}" -r -sccUTF-8 | sed -n 's/Path = //gp' > "$list_content"
     else
         echo 'unkonw file'
         exit 1; 
