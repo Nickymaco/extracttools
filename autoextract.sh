@@ -198,8 +198,7 @@ extract_file() {
             # shellcheck disable=SC2086
             7za -p"$2" -o"$4" -x@"$exclude_file" e "$1" ${exts_parrtern[*]} -sccUTF-8 -aot -r
         else
-            echo '1'
-            return 1;
+            exit 1;
         fi
     else
         if [[ "$file_type" == 'rar' ]]; then
@@ -212,13 +211,9 @@ extract_file() {
             # shellcheck disable=SC2086
             7za -p"$2" -o"$4" e "$1" ${exts_parrtern[*]} -sccUTF-8 -aot -r
         else
-            echo '1'
-            return 1;
+            exit 1;
         fi
     fi 
-
-    echo "$?"
-    return $?
 }
 
 # $1 file_name
@@ -392,12 +387,13 @@ extract_pic(){
         local code;
 
         if [[ "$parttern" != "" ]]; then
-            code=$(extract_file "$1" "$2" "$parttern" "$save_path") 
+            extract_file "$1" "$2" "$parttern" "$save_path"
         else
-            code=$(extract_file "$1" "$2" "${image_exts[*]}" "$save_path")
+            extract_file "$1" "$2" "${image_exts[*]}" "$save_path"
         fi
 
-        if [[ code -eq 0 ]]; then
+        # shellcheck disable=SC2181
+        if [[ $? -eq 0 ]]; then
             del_file "$1"
         fi
         
@@ -522,7 +518,7 @@ main() {
         esac
 
         exp_dir=$(format_save_dir "$exp_dir")
-        code=$(extract_file "$1" "$pwd" "${video_exts[*]}" "$exp_dir")
+        extract_file "$1" "$pwd" "${video_exts[*]}" "$exp_dir"
         
         ls -l --block-size=M "$exp_dir"
     else
@@ -540,7 +536,7 @@ main() {
         # shellcheck disable=SC2001
         new_file_name="$(echo "$base_name" | sed -e "s@\\W@@g").$ext"
         
-        code=$(extract_file "$1" "$pwd" "$extract_pattern" "$exp_dir")
+        extract_file "$1" "$pwd" "$extract_pattern" "$exp_dir"
 
         if [[ "$file_name" != "$new_file_name" ]]; then
             mv "${exp_dir//\\/}/${file_name}" "${exp_dir//\\/}/$new_file_name"
@@ -549,9 +545,7 @@ main() {
         msg --prompt "\\n$(file "$exp_dir/$new_file_name")"
     fi
 
-    if [[ $code -eq 0 ]]; then
-        extract_pic "$1" "$pwd"
-    fi
+    extract_pic "$1" "$pwd"
 }
 
 if [[ "$#" -eq 0 ]]; then
