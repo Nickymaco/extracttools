@@ -384,8 +384,6 @@ extract_pic(){
         save_path=$(format_save_dir "$save_path")
         check_dir "$save_path"
 
-        local code;
-
         if [[ "$parttern" != "" ]]; then
             extract_file "$1" "$2" "$parttern" "$save_path"
         else
@@ -488,7 +486,6 @@ main() {
     local extract_pattern
     local ext
     local new_file_name
-    local code;
 
     if [[ $count -gt 1 ]]; then
         if [[ -d "$assing_dir" ]]; then
