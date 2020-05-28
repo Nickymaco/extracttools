@@ -458,12 +458,12 @@ main() {
 
     if [[ $list_files == true ]]; then
         cat "$list_content"
-        exit 0
+        return 0
     fi
 
     if [[ $only_extrac_pic == true ]]; then
         extract_pic "$1" "$pwd"
-        return 0;
+        return 0
     fi
 
     local file_path
