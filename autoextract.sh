@@ -8,6 +8,7 @@ declare epassword
 declare only_extrac_pic=false
 declare base_name_type
 declare list_content
+declare list_files
 declare -a var_exclude
 
 declare -r config_dir="$HOME/.extract_config"
@@ -425,6 +426,7 @@ help_print() {
     c      Path of listed content saved file.
     d      None arguments. debug shell execute.
     i      None arguments. Only extract images from the file.
+    l      Only list content
     n      [tree] rename from path | [file] rename from archive filename | default done nothings.
     o      The file saved dir.
     p      The extract password.
@@ -454,12 +456,12 @@ main() {
 
     extract_list "$1" "$pwd" > /dev/null
 
-    local count
+    if [[ $list_files == true ]]; then
+        cat "$list_content"
+        exit 0
+    fi
 
-    count=$(grep -i -c -E "$video_path_pattern" "$list_content")
-
-    if [[ $count -eq 0 || $only_extrac_pic == true ]]; then
-        msg --prompt "No media files !\\n"
+    if [[ $only_extrac_pic == true ]]; then
         extract_pic "$1" "$pwd"
         return 0;
     fi
@@ -486,7 +488,7 @@ main() {
     local ext
     local new_file_name
 
-    if [[ $count -gt 1 ]]; then
+    if [[ $(grep -i -c -E "$video_path_pattern" "$list_content") -gt 1 ]]; then
         if [[ -d "$assing_dir" ]]; then
             exp_dir="$(check_store "$assing_dir/$base_name")"
         else
@@ -549,7 +551,7 @@ if [[ "$#" -eq 0 ]]; then
     exit 0
 fi
 
-while getopts :hdiuc:n:o:p:t:X opt; do
+while getopts :hdiluc:n:o:p:t:X opt; do
     case $opt in
         h) 
           help_print
@@ -563,6 +565,7 @@ while getopts :hdiuc:n:o:p:t:X opt; do
         p) epassword="$OPTARG" ;;
         X) IFS="," read -r -a var_exclude <<< "${OPTARG}" ;;
         i) only_extrac_pic=true ;; #piconly
+        l) list_files=true ;; 
         *) ;;
     esac
 done
