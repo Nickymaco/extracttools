@@ -324,7 +324,6 @@ get_basename(){
 # $1 file_name
 # $2 password
 extract_pic(){
-    local pic_count
     local file_path
     local dir_name
     local save_path
@@ -332,9 +331,8 @@ extract_pic(){
     local parttern
 
     msg "Image checking, pleas wait for a moment !\\n"
-    pic_count=$(grep -c -i -E "$image_path_pattern" "$list_content")
 
-    if [[ $pic_count -lt 10 ]]; then
+    if [[ $(grep -c -i -E "$image_path_pattern" "$list_content") -lt 10 ]]; then
         msg --prompt "there are no more pictures ! \\n"
         del_file "$1"
         return
