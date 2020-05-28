@@ -187,6 +187,8 @@ extract_file() {
 
     file_type=$(get_file_type "$1")
 
+    set +e
+
     if [[ -f $exclude_file ]]; then
         if [[ "$file_type" == 'rar' ]]; then
             # shellcheck disable=SC2086
@@ -214,6 +216,8 @@ extract_file() {
             exit 1;
         fi
     fi 
+
+    set -e
 }
 
 # $1 file_name
