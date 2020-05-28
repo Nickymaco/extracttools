@@ -334,67 +334,68 @@ extract_pic(){
     msg "Image checking, pleas wait for a moment !\\n"
     pic_count=$(grep -c -i -E "$image_path_pattern" "$list_content")
 
-    if [[ $pic_count -gt 10 ]]; then
-        index=1
-        
-        while read -r line; do
-            if [[ index -eq 1 ]]; then
-                file_path="$line"
-            fi
-
-            msg "Found -> $line"
-
-            index=$(( index + 1 ))
-        done <<< "$(grep -i -E "$image_path_pattern" "$list_content" | head -n 20)"
-
-        dir_name=$(get_basename "$file_path" "$1")
-
-        if [[ $assing_dir != '' ]]; then
-            save_path="$assing_dir/$dir_name"
-        elif [[ -d "$image_save_dir"  ]]; then
-            local img_save_path
-
-            img_save_path=$(check_store "$image_save_dir" 30)
-
-            save_path="$img_save_path/$dir_name"
-        else 
-            save_path="$(pwd)/$dir_name"
-        fi
-
-        msg --warn "\\nConfim the save path $save_path \\n"
-
-        read -r -p "[y]es or [n]ew or [e]xit, file partten [option]:" confirm parttern
-
-        case $confirm in
-            n|new) 
-                save_path=$(get_dir)
-                ;;
-            e|exit)
-                del_file "$1"
-                return 0
-                ;;
-            *) 
-                if [[ "$confirm" != "y" && "$confirm" != "yes" ]]; then
-                    msg --error "unkonw confirm !\\n"
-                    return 1
-                fi
-                ;;
-        esac
-
-        save_path=$(format_save_dir "$save_path")
-        check_dir "$save_path"
-
-        if [[ "$parttern" != "" ]]; then
-            extract_file "$1" "$2" "$parttern" "$save_path"
-        else
-            extract_file "$1" "$2" "${image_exts[*]}" "$save_path"
-        fi
-
-         del_file "$1"
-    else
+    if [[ $pic_count -lt 10 ]]; then
         msg --prompt "there are no more pictures ! \\n"
         del_file "$1"
+        return
     fi
+
+    index=1
+        
+    while read -r line; do
+        if [[ index -eq 1 ]]; then
+            file_path="$line"
+        fi
+
+        msg "Found -> $line"
+
+        index=$(( index + 1 ))
+    done <<< "$(grep -i -E "$image_path_pattern" "$list_content" | head -n 20)"
+
+    dir_name=$(get_basename "$file_path" "$1")
+
+    if [[ $assing_dir != '' ]]; then
+        save_path="$assing_dir/$dir_name"
+    elif [[ -d "$image_save_dir"  ]]; then
+        local img_save_path
+
+        img_save_path=$(check_store "$image_save_dir" 30)
+
+        save_path="$img_save_path/$dir_name"
+    else 
+        save_path="$(pwd)/$dir_name"
+    fi
+
+    msg --warn "\\nConfim the save path $save_path \\n"
+
+    read -r -p "[y]es or [n]ew or [e]xit, file partten [option]:" confirm parttern
+
+    case $confirm in
+        n|new) 
+            save_path=$(get_dir)
+            ;;
+        e|exit)
+            del_file "$1"
+            return 0
+            ;;
+        *) 
+            if [[ "$confirm" != "y" && "$confirm" != "yes" ]]; then
+                msg --error "unkonw confirm !\\n"
+                return 1
+            fi
+            ;;
+    esac
+
+    save_path=$(format_save_dir "$save_path")
+    check_dir "$save_path"
+
+    if [[ "$parttern" != "" ]]; then
+        extract_file "$1" "$2" "$parttern" "$save_path"
+    else
+        extract_file "$1" "$2" "${image_exts[*]}" "$save_path"
+    fi
+
+        del_file "$1"
 }
 # $1 filter name
 exclude_filter() {
