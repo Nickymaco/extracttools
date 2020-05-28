@@ -390,11 +390,7 @@ extract_pic(){
             extract_file "$1" "$2" "${image_exts[*]}" "$save_path"
         fi
 
-        # shellcheck disable=SC2181
-        if [[ $? -eq 0 ]]; then
-            del_file "$1"
-        fi
-        
+         del_file "$1"
     else
         msg --prompt "there are no more pictures ! \\n"
         del_file "$1"
