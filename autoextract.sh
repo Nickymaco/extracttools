@@ -169,7 +169,7 @@ get_file_type() {
 
      if [[ $(echo "$file_type_str" | grep -c -i "rar") -gt 0  ]]; then
         echo "rar"
-    elif [[ $(echo "$file_type_str" | grep -c -i "7z") -gt 0  ]]; then
+    elif [[ $(echo "$file_type_str" | grep -c -i "7-zip") -gt 0  ]]; then
         echo "7z"
     elif [[ $(echo "$file_type_str" | grep -c -i "zip") -gt 0 ]]; then
         echo "zip"
