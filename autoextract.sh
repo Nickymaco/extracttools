@@ -165,6 +165,7 @@ get_file_type() {
     local file_type_str
 
     file_type_str=$(file "$1")
+    file_type_str="${file_type_str//$1/}"
 
      if [[ $(echo "$file_type_str" | grep -c -i "rar") -gt 0  ]]; then
         echo "rar"
