@@ -488,8 +488,11 @@ main() {
     local extract_pattern
     local ext
     local new_file_name
+    local files_count;
 
-    if [[ $(grep -i -c -E "$video_path_pattern" "$list_content") -gt 1 ]]; then
+    files_count=$(grep -i -c -E "$video_path_pattern" "$list_content")
+
+    if [[ $files_count -gt 1 ]]; then
         if [[ -d "$assing_dir" ]]; then
             exp_dir="$(check_store "$assing_dir/$base_name")"
         else
@@ -520,7 +523,7 @@ main() {
         extract_file "$1" "$pwd" "${video_exts[*]}" "$exp_dir"
         
         ls -l --block-size=M "$exp_dir"
-    else
+    elif [[ $files_count -eq 1 ]]; then
         if [[ -d "$assing_dir" ]]; then
             exp_dir=$(check_store "$assing_dir")
         else
