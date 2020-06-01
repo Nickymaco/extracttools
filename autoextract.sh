@@ -479,6 +479,12 @@ main() {
         msg "Found -> $line"
     done <<< "$(grep -i -E "$video_path_pattern" "$list_content")"
 
+    # not found any video file
+    if [[ $file_path == "" ]]; then
+        extract_pic "$1" "$pwd"
+        return 0
+    fi
+
     local base_name
 
     base_name=$(get_basename "$file_path" "$1")
