@@ -543,6 +543,12 @@ main() {
         ext=$(echo "${file_name##*.}" | tr '[:upper:]' '[:lower:]')
         # shellcheck disable=SC2001
         new_file_name="$(echo "$base_name" | sed -e "s@\\W@@g").$ext"
+
+        if [[ -s "${exp_dir//\\/}/$new_file_name" ]]; then
+            msg --prompt "file existed"
+            extract_pic "$1" "$pwd"
+            return 0
+        fi
         
         extract_file "$1" "$pwd" "$extract_pattern" "$exp_dir"
 
