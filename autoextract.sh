@@ -14,10 +14,10 @@ declare -a var_exclude
 declare -r config_dir="$HOME/.extract_config"
 declare -r config_file="$config_dir/extract.config"
 
-declare -r video_exts=("*.avi" "*.mp4" "*.mov" "*.wmv" "*.rmvb" "*.mkv" "*.flv" "*.mpg" "*.mts" "*.m2ts" "*.vob" "*.MP4" "*.AVI" "*.MOV" "*.WMV" "*.RMVB" "*.MKV" "*.FLV" "*.MPG" "*.MTS" "*.M2TS" "*.VOB")
+declare -r video_exts=("*.M4V" "*.m4v" "*.ts" "*.TS" "*.avi" "*.mp4" "*.mov" "*.wmv" "*.rmvb" "*.mkv" "*.flv" "*.mpg" "*.mts" "*.m2ts" "*.vob" "*.MP4" "*.AVI" "*.MOV" "*.WMV" "*.RMVB" "*.MKV" "*.FLV" "*.MPG" "*.MTS" "*.M2TS" "*.VOB")
 declare -r image_exts=("*.jpg" "*.jpeg" "*.png" "*.bmp" "*.JPG" "*.JPEG" "*.PNG" "*.BMP")
 
-declare -r video_path_pattern="\\.(mp4|avi|mov|wmv|rmvb|mpg|mkv|flv|mts|vob|m2ts)$"
+declare -r video_path_pattern="\\.(m4v|ts|mp4|avi|mov|wmv|rmvb|mpg|mkv|flv|mts|vob|m2ts)$"
 declare -r image_path_pattern="\\.(jpg|png|jpeg|bmp)$"
 
 init(){
@@ -590,16 +590,19 @@ shift $(( OPTIND - 1 ))
 
 init # initialize environment
 
+del_content_file=false;
+
 while [[ -n "$1" ]]; do
     if [[ $(exclude_filter "${1%%.*}") -eq 0 ]]; then
         # create content file when it no special
         if [[ ! -f "$list_content" ]]; then
             list_content="/tmp/$(date +%s%N).ea"
+            del_conent_file=true
         fi
         # start
         main "$1"
         # delete tmp content file
-        if [[ -f "$list_content" ]]; then
+        if [[ -f "$list_content" && $del_content_file == true ]]; then
           rm -f "$list_content"
         fi
     else
