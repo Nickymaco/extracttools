@@ -530,10 +530,10 @@ main() {
         
         ls -l --block-size=M "$exp_dir"
     elif [[ $files_count -eq 1 ]]; then
-        if [[ -d "$video_save_dir" ]]; then
-            exp_dir=$(check_store "$video_save_dir")
-        else
+        if [[ -d "$assing_dir" ]]; then
             exp_dir=$(check_store "$assing_dir")
+        else
+            exp_dir=$(check_store "$video_save_dir")
         fi
         
         exp_dir=$(format_save_dir "$exp_dir")
