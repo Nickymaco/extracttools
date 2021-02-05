@@ -358,14 +358,14 @@ extract_pic(){
 
     dir_name=$(get_basename "$file_path" "$1")
 
-    if [[ $assing_dir != '' ]]; then
-        save_path="$assing_dir/$dir_name"
-    elif [[ -d "$image_save_dir"  ]]; then
+    if [[ -d "$image_save_dir"  ]]; then
         local img_save_path
 
         img_save_path=$(check_store "$image_save_dir" 30)
 
         save_path="$img_save_path/$dir_name"
+    elif  [[ $assing_dir != '' ]]; then
+        save_path="$assing_dir/$dir_name"
     else 
         save_path="$(pwd)/$dir_name"
     fi
@@ -499,10 +499,10 @@ main() {
     files_count=$(grep -i -c -E "$video_path_pattern" "$list_content")
 
     if [[ $files_count -gt 1 ]]; then
-        if [[ -d "$assing_dir" ]]; then
-            exp_dir="$(check_store "$assing_dir/$base_name")"
+        if [[ -d "$video_album_dir" ]]; then
+            exp_dir="$(check_store "$video_album_dir/$base_name")"
         else
-            exp_dir="$(check_store "$video_album_dir/$base_name")"           
+            exp_dir="$(check_store "$assing_dir/$base_name")"           
         fi
         
         msg --warn "\\nThere are more then one media file. Confirm save path: $exp_dir"
@@ -530,10 +530,10 @@ main() {
         
         ls -l --block-size=M "$exp_dir"
     elif [[ $files_count -eq 1 ]]; then
-        if [[ -d "$assing_dir" ]]; then
-            exp_dir=$(check_store "$assing_dir")
-        else
+        if [[ -d "$video_save_dir" ]]; then
             exp_dir=$(check_store "$video_save_dir")
+        else
+            exp_dir=$(check_store "$assing_dir")
         fi
         
         exp_dir=$(format_save_dir "$exp_dir")
@@ -597,7 +597,7 @@ while [[ -n "$1" ]]; do
         # create content file when it no special
         if [[ ! -f "$list_content" ]]; then
             list_content="/tmp/$(date +%s%N).ea"
-            del_conent_file=true
+            del_content_file=true
         fi
         # start
         main "$1"
