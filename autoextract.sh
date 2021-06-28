@@ -197,7 +197,7 @@ extract_file() {
             unrar -or -p"$2" -x@"$exclude_file" e "$1" ${exts_parrtern[*]} "$4"
         elif [[ "$file_type" == "zip" ]]; then
             # shellcheck disable=SC2086
-            unzip -P"$2" -Ocp936 -j "$1" ${exts_parrtern[*]} -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")" -d "$4"
+            unzip -P"$2" -j "$1" ${exts_parrtern[*]} -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")" -d "$4"
         elif [[ "$file_type" == '7z' ]]; then
             # shellcheck disable=SC2086
             7za -p"$2" -o"$4" -x@"$exclude_file" e "$1" ${exts_parrtern[*]} -sccUTF-8 -aot -r
