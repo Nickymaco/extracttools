@@ -172,7 +172,7 @@ get_file_type() {
     elif [[ $(echo "$file_type_str" | grep -c -i "7-zip") -gt 0  ]]; then
         echo "7z"
     elif [[ $(echo "$file_type_str" | grep -c -i "zip") -gt 0 ]]; then
-        echo "zip"
+        echo "7z"
     else
         echo 'unkonw file'
         exit 1
