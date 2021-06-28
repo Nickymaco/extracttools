@@ -195,10 +195,10 @@ extract_file() {
         if [[ "$file_type" == 'rar' ]]; then
             # shellcheck disable=SC2086
             unrar -or -p"$2" -x@"$exclude_file" e "$1" ${exts_parrtern[*]} "$4"
-        elif [[ "$file_type" == "zip" ]]; then
-            # shellcheck disable=SC2086
-            unzip -P"$2" -j "$1" ${exts_parrtern[*]} -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")" -d "$4"
-        elif [[ "$file_type" == '7z' ]]; then
+        # elif [[ "$file_type" == "zip" ]]; then
+        #     # shellcheck disable=SC2086
+        #     unzip -P"$2" -j "$1" ${exts_parrtern[*]} -x "$(sed ':a ; N;s/\n/ / ; t a ; ' "$exclude_file")" -d "$4"
+        elif [[ "$file_type" == '7z' || "$file_type" == "zip" ]]; then
             # shellcheck disable=SC2086
             7za -p"$2" -o"$4" -x@"$exclude_file" e "$1" ${exts_parrtern[*]} -sccUTF-8 -aot -r
         else
@@ -208,10 +208,10 @@ extract_file() {
         if [[ "$file_type" == 'rar' ]]; then
             # shellcheck disable=SC2086
             unrar -or -p"$2" e "$1" ${exts_parrtern[*]} "$4"
-        elif [[ "$file_type" == "zip" ]]; then
-            # shellcheck disable=SC2086
-            unzip -P"$2" -j "$1" ${exts_parrtern[*]} -d "$4"
-        elif [[ "$file_type" == '7z' ]]; then
+        # elif [[ "$file_type" == "zip" ]]; then
+        #     # shellcheck disable=SC2086
+        #     unzip -P"$2" -j "$1" ${exts_parrtern[*]} -d "$4"
+        elif [[ "$file_type" == '7z' || "$file_type" == "zip" ]]; then
             # shellcheck disable=SC2086
             7za -p"$2" -o"$4" e "$1" ${exts_parrtern[*]} -sccUTF-8 -aot -r
         else
@@ -232,10 +232,10 @@ extract_list() {
     if [[ "$file_type" == 'rar' ]]; then
         # shellcheck disable=SC2086
         unrar -p"$2" lb "$1" ${video_exts[*]} ${image_exts[*]} > "$list_content"
-    elif [[ "$file_type" == "zip" ]]; then
-        # shellcheck disable=SC2086
-        unzip -P"$2" -Ocp936 -l "$1" ${video_exts[*]} ${image_exts[*]} | sed -n "/---------/,\$p" | sed "/---------/d;\$d" | while read -r _ _ _ c4; do echo "$c4"; done > "$list_content"
-    elif [[ "$file_type" == '7z' ]]; then
+    # elif [[ "$file_type" == "zip" ]]; then
+    #     # shellcheck disable=SC2086
+    #     unzip -P"$2" -Ocp936 -l "$1" ${video_exts[*]} ${image_exts[*]} | sed -n "/---------/,\$p" | sed "/---------/d;\$d" | while read -r _ _ _ c4; do echo "$c4"; done > "$list_content"
+    elif [[ "$file_type" == '7z' || "$file_type" == "zip" ]]; then
         # shellcheck disable=SC2086
         7za -slt -p"$2" l "$1" ${video_exts[*]} ${image_exts[*]} -r -sccUTF-8 | sed -n 's/Path = //gp' > "$list_content"
     else
