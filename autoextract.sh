@@ -361,7 +361,11 @@ extract_pic(){
     if [[ -d "$image_save_dir"  ]]; then
         local img_save_path
 
-        img_save_path=$(check_store "$image_save_dir" 30)
+        img_save_path=$(check_store "$image_save_dir" 35)
+
+        if [[ "$img_save_path" != "$image_save_dir" ]]; then
+            image_save_dir="$img_save_path"
+        fi
 
         save_path="$img_save_path/$dir_name"
     elif  [[ $assing_dir != '' ]]; then
@@ -532,8 +536,14 @@ main() {
     elif [[ $files_count -eq 1 ]]; then
         if [[ -d "$assing_dir" ]]; then
             exp_dir=$(check_store "$assing_dir")
+            if [[ "$exp_dir" != "$assing_dir" ]]; then 
+                assing_dir="$exp_dir"
+            fi
         else
             exp_dir=$(check_store "$video_save_dir")
+            if [[ "$exp_dir" != "$video_save_dir" ]]; then 
+                video_save_dir="$exp_dir"
+            fi
         fi
         
         exp_dir=$(format_save_dir "$exp_dir")
